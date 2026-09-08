@@ -774,18 +774,6 @@ body {
   display: inline-block;
 }
 
-/* Bot badge on workstation */
-.workstation-bot {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-}
-
-.workstation:hover .workstation-bot { opacity: 1; }
-
 /* =========================================================
    BOILER BOT — The AI worker characters
    ========================================================= */
@@ -905,6 +893,391 @@ body {
 /* Small bot variant (for workstation badge) */
 .bot-sm .bot-body { width: 18px; height: 18px; }
 .bot-sm .bot-badge { font-size: 0.4rem; padding: 0 3px; }
+
+/* =========================================================
+   WORKSTATION ROOMS — Living dioramas
+   ========================================================= */
+.room {
+  position: relative;
+  height: 150px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #141b28 0%, #10151d 62%, #0b0f15 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.room-wall {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 44px, rgba(58,74,96,0.10) 44px 45px),
+    repeating-linear-gradient(0deg, transparent 0 33px, rgba(58,74,96,0.08) 33px 34px);
+}
+
+.room-floor {
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 20px;
+  background: linear-gradient(180deg, #1b2331 0%, #121823 45%, #0a0d12 100%);
+  border-top: 1px solid #2c3649;
+}
+
+/* conduit pipes */
+.room-pipes {
+  position: absolute;
+  top: 0; bottom: 20px;
+  width: 5px;
+  background: linear-gradient(90deg, #263244, #3a4a60 50%, #22303e);
+  border-radius: 2px;
+}
+.room-pipes.left { left: 8px; }
+.room-pipes.right { right: 8px; }
+.room-pipes::before,
+.room-pipes::after {
+  content: '';
+  position: absolute; left: -2px;
+  width: 9px; height: 8px;
+  background: #0c1015;
+  border: 1px solid #39465c;
+  border-radius: 2px;
+}
+.room-pipes::before { top: 34px; }
+.room-pipes::after { top: 78px; }
+
+/* shelf + toolbox (left) */
+.room-shelf {
+  position: absolute;
+  left: 2px; bottom: 20px;
+  width: 42px; height: 7px;
+  background: linear-gradient(180deg, #3a4a60, #161d29);
+  border-radius: 1px;
+}
+.room-shelf::before {
+  content: '';
+  position: absolute; left: 1px; top: -13px;
+  width: 24px; height: 13px;
+  background: #1b2333;
+  border: 1px solid #2c3649;
+  border-radius: 2px;
+}
+.room-shelf .shelf-box {
+  position: absolute; right: 1px; top: -16px;
+  width: 13px; height: 16px;
+  background: #232d3f;
+  border: 1px solid #39465c;
+  border-radius: 2px;
+}
+.room-shelf .shelf-box::after {
+  content: '';
+  position: absolute; left: 3px; right: 3px; top: 4px; height: 3px;
+  background: #0e131b;
+}
+
+/* junction box (spark short target, left side) */
+.room-junction {
+  position: absolute;
+  left: 52px; bottom: 20px;
+  width: 20px; height: 26px;
+  background: #161d29;
+  border: 1px solid #2c3649;
+  border-radius: 2px;
+}
+.room-junction::before {
+  content: '';
+  position: absolute; top: 5px; left: 50%;
+  transform: translateX(-50%);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #39465c;
+}
+
+/* server rack (right) */
+.room-server {
+  position: absolute;
+  right: 8px; bottom: 20px;
+  width: 38px; height: 36px;
+  background: #151b26;
+  border: 1px solid #2c3649;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px #10141c;
+}
+.room-server::before {
+  content: '';
+  position: absolute; top: 6px; left: 5px; right: 5px; height: 4px;
+  background: #202a3b;
+  border-radius: 1px;
+  box-shadow: 0 9px 0 #202a3b, 0 18px 0 #202a3b;
+}
+.room-server .server-dot {
+  position: absolute; top: 12px; right: 6px;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 4px var(--green-glow);
+}
+.room-server .server-dot.on { background: var(--yellow); box-shadow: 0 0 4px var(--yellow); }
+.room-server .server-dot.err { background: var(--red); box-shadow: 0 0 4px var(--red-glow); }
+
+/* desk */
+.room-desk {
+  position: absolute;
+  right: 7%; bottom: 20px;
+  width: 46%; height: 30px;
+}
+.desk-top {
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(180deg, #45556d, #333f54);
+  border-radius: 1px;
+}
+.desk-leg {
+  position: absolute; bottom: 0; width: 3px; height: 26px;
+  background: #212b3c;
+}
+.desk-leg.l1 { left: 9px; }
+.desk-leg.l2 { right: 9px; }
+
+.desk-monitor {
+  position: absolute;
+  top: 4px; left: 50%;
+  width: 34px; height: 24px;
+  margin-left: -17px;
+}
+.monitor-screen {
+  position: absolute; top: 0; left: 0; right: 0; height: 17px;
+  background: radial-gradient(ellipse at 50% 40%, #0e1624, #0a0e16 75%);
+  border: 1px solid #39465c;
+  border-radius: 2px;
+}
+.monitor-stand {
+  position: absolute; top: 17px; left: 50%;
+  margin-left: -1px;
+  width: 2px; height: 3px;
+  background: #39465c;
+}
+.monitor-base {
+  position: absolute; top: 20px; left: 50%;
+  margin-left: -7px;
+  width: 14px; height: 2px;
+  border-radius: 1px;
+  background: #39465c;
+}
+.desk-monitor .done-check {
+  position: absolute; top: 2px; left: 0; right: 0; margin: auto;
+  width: 11px; height: 11px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.room-monitor-done .done-check { opacity: 1; }
+
+/* mug (appears when relaxed / complete) */
+.desk-mug {
+  position: absolute;
+  bottom: 4px; left: 3px;
+  width: 8px; height: 9px;
+  background: linear-gradient(180deg, #4a9eff, #2f6fc9);
+  border-radius: 1px 1px 2px 2px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.desk-mug::before {
+  content: '';
+  position: absolute; right: -2px; top: 2px;
+  width: 2px; height: 4px;
+  border-radius: 1px;
+  background: #4a9eff;
+}
+.room-settled .desk-mug { opacity: 1; }
+
+/* chair */
+.room-chair {
+  position: absolute;
+  bottom: 20px; left: 40%;
+  width: 34px; height: 42px;
+  transform-origin: 50% 90%;
+  transition: transform 0.7s var(--ease-out);
+}
+.chair-base {
+  position: absolute; bottom: 0; left: 8px; right: 8px; height: 2px;
+  border-radius: 1px;
+  background: #39465c;
+}
+.chair-post {
+  position: absolute; bottom: 2px; left: 50%; margin-left: -1px;
+  width: 2px; height: 22px;
+  background: #39465c;
+}
+.chair-seat {
+  position: absolute; bottom: 24px; left: 6px; right: 6px; height: 4px;
+  background: #2c3649;
+  border-radius: 1px;
+}
+.chair-back {
+  position: absolute; bottom: 28px; left: 4px;
+  width: 4px; height: 14px;
+  background: #2c3649;
+  border-radius: 1px 1px 0 0;
+}
+.room-settled .room-chair { transform: rotate(-8deg); }
+
+/* room status light */
+.room-light {
+  position: absolute; top: 8px; right: 8px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green-glow);
+}
+.room-light.st-busy { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.room-light.st-err { background: var(--red); box-shadow: 0 0 7px var(--red-glow); }
+@media (prefers-reduced-motion: no-preference) {
+  .room-light.st-busy { animation: roomLightPulse 1.6s ease-in-out infinite; }
+  .room-light.st-err { animation: roomLightPulse 1s ease-in-out infinite; }
+}
+@keyframes roomLightPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* bot in room */
+.room-bot {
+  position: absolute;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 3;
+  transition: left 0.95s var(--ease-out);
+}
+.room-bot.rpos-desk { left: 40%; }
+.room-bot.rpos-left { left: 16%; }
+.room-bot.rpos-right { left: 84%; }
+.room-bot.rpos-review { left: 60%; }
+.room-bot.rpos-center { left: 50%; }
+
+.room-bot .boiler-bot:hover { transform: scale(1.1); }
+
+/* walking bob */
+@media (prefers-reduced-motion: no-preference) {
+  .room-bot[data-walking] .bot-body { animation: walkBob 0.28s ease-in-out infinite; }
+}
+@keyframes walkBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(1.5deg); }
+}
+
+/* room bot state overrides */
+.room-bot .boiler-bot[data-state="complete"] .bot-body {
+  animation: roomSettle 0.9s 0.15s var(--ease-spring) forwards;
+  transform-origin: 50% 80%;
+}
+@keyframes roomSettle {
+  0% { transform: translateY(1px) rotate(3deg) scale(1); }
+  100% { transform: translateY(0) rotate(-8deg) scale(1.03); }
+}
+.room-bot .boiler-bot[data-state="complete"] .bot-leg,
+.room-bot .boiler-bot[data-state="complete"] .bot-foot {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+.room-bot .boiler-bot[data-state="complete"] .bot-leg {
+  animation: legSwing 0.75s 0.3s var(--ease-out) forwards;
+}
+.room-bot .boiler-bot[data-state="complete"] .bot-foot {
+  animation: footSwing 0.75s 0.35s var(--ease-out) forwards;
+}
+@keyframes legSwing { to { transform: rotate(80deg) translateX(1px); } }
+@keyframes footSwing { to { transform: rotate(80deg) translate(1px, -2px); } }
+
+/* problem indicators */
+.room-problem {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+}
+.room-problem .p-icon {
+  width: 12px; height: 12px;
+  display: block;
+}
+.room-problem .p-icon svg { width: 100%; height: 100%; }
+.room-problem .p-label {
+  font-family: var(--font-mono);
+  font-size: 0.45rem;
+  letter-spacing: 0.5px;
+  color: var(--yellow);
+  white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+.room-problem.p-leak { left: 10px; bottom: 40px; }
+.room-problem.p-server { right: 6px; bottom: 60px; }
+.room-problem.p-spark { left: 50px; bottom: 46px; }
+.room-problem.p-clipboard { bottom: 62px; left: 50%; transform: translateX(-50%); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .room-problem .p-icon { animation: problemBlink 1.8s ease-in-out infinite; }
+  .room-problem.p-server .p-icon { animation: serverBlink 1.4s ease-in-out infinite; }
+  .room-problem.p-spark .p-icon { animation: sparkFlick 0.5s steps(2, start) infinite; }
+}
+@keyframes problemBlink {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.75; }
+}
+@keyframes serverBlink {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.4; }
+}
+@keyframes sparkFlick {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* tool + tablet carried by bot */
+.room-tool {
+  position: absolute;
+  top: -2px; right: -14px;
+  width: 12px; height: 12px;
+  display: none;
+  pointer-events: none;
+}
+.room-tool svg { width: 100%; height: 100%; }
+.room-tool.on { display: block; }
+
+.room-tablet {
+  position: absolute;
+  top: -10px; left: 30px;
+  width: 14px; height: 10px;
+  background: #10161f;
+  border: 1px solid #39465c;
+  border-radius: 1px;
+  display: none;
+  padding: 2px 2px 2px;
+  gap: 2px;
+  flex-direction: column;
+  pointer-events: none;
+}
+.room-tablet span {
+  display: block; height: 1.5px;
+  background: #56d4dd;
+  opacity: 0.8;
+}
+.room-tablet span:nth-child(2) { width: 70%; }
+.room-tablet span:nth-child(3) { width: 40%; }
+.room-tablet.on {
+  display: flex;
+  animation: tabletTilt 1.6s ease-in-out infinite;
+}
+@keyframes tabletTilt {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+/* busy room: monitor glows, activity lights */
+.room-busy .monitor-screen {
+  box-shadow: 0 0 8px rgba(74,158,255,0.30), inset 0 0 12px rgba(74,158,255,0.18);
+  background: radial-gradient(ellipse at 50% 40%, #13203a, #0a0e16 75%);
+}
+.room-busy .server-dot { background: var(--yellow); box-shadow: 0 0 4px var(--yellow); }
+.room-settled .server-dot { background: var(--green); box-shadow: 0 0 4px var(--green-glow); }
 
 /* =========================================================
    ACTIVITY TERMINAL — Industrial event feed
@@ -1335,6 +1708,8 @@ body {
     padding: 14px;
     gap: 12px;
   }
+
+  .room { height: 138px; }
 
   .terminal-feed { max-height: 100px; padding: 8px 14px; }
 

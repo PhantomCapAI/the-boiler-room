@@ -220,7 +220,7 @@
       const status = (meta.aiStatus || 'IDLE').toUpperCase();
       if (status === 'WORKING' || status === 'ACTIVE') pressure += 25;
       else if (status === 'REVIEWING' || status === 'REVIEW') pressure += 15;
-      else if (status === 'BLOCKED') pressure += 20;
+      else if (status === 'BLOCKED' || status === 'ERROR') pressure += 20;
       else if (status === 'PLANNING') pressure += 10;
     });
     return Math.min(100, Math.round((pressure / Math.max(repos.length, 1)) * 100));
@@ -244,7 +244,7 @@
       const meta = state.metadata[getMetaKey(r)] || {};
       const s = (meta.aiStatus || 'IDLE').toUpperCase();
       if (s === 'WORKING' || s === 'ACTIVE') active++;
-      else if (s === 'BLOCKED') blocked++;
+      else if (s === 'BLOCKED' || s === 'ERROR') blocked++;
       else if (s === 'REVIEWING' || s === 'REVIEW') review++;
       else if (s === 'DONE' || s === 'COMPLETE') done++;
       if (meta.pinned) pinned++;
@@ -286,7 +286,7 @@
       const busyCount = assignedRepos.filter(r => {
         const meta = state.metadata[getMetaKey(r)] || {};
         const s = (meta.aiStatus || 'IDLE').toUpperCase();
-        return s === 'WORKING' || s === 'ACTIVE' || s === 'REVIEWING' || s === 'REVIEW';
+        return s === 'WORKING' || s === 'ACTIVE' || s === 'REVIEWING' || s === 'REVIEW' || s === 'ERROR';
       }).length;
       const botState = busyCount > 0 ? 'working' : 'idle';
       bay.appendChild(createBotElement(model, botState, false));
@@ -298,8 +298,80 @@
   }
 
   /* =========================================================
-     WORKSTATIONS — Repo cards
+     WORKSTATIONS — Repo rooms (living dioramas)
      ========================================================= */
+  const WRENCH_SVG = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1.4" y="3.6" width="3.2" height="5.2" rx="1.3" fill="#39465c"/><rect x="4.7" y="6.2" width="5.2" height="1.7" rx="0.8" fill="#c8a94e" transform="rotate(-18 7.3 7.05)"/></svg>`;
+  const ICON_SVG = {
+    leak: `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.6c0 0 3.3 3.7 3.3 5.9A3.3 3.3 0 1 1 2.7 7.5C2.7 5.3 6 1.6 6 1.6z" fill="#56d4dd"/><path d="M6 8.3a1.9 1.9 0 0 1-1.9 1.9" stroke="#0a0e16" stroke-width="0.9" fill="none"/></svg>`,
+    server: `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8" rx="1.2" fill="#39465c"/><circle cx="4" cy="4" r="0.9" fill="#0a0e16"/><path d="M5.6 3.8H9M4.4 6H9M4.4 7.9H9" stroke="#0a0e16" stroke-width="0.9"/></svg>`,
+    spark: `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6.2 1L3 6.4h3l-.9 4.6 3.6-6H5.6z" fill="#e3b341"/></svg>`,
+    clipboard: `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.4" y="2" width="7.2" height="9" rx="1.2" fill="#39465c"/><rect x="4.2" y="0.9" width="3.6" height="2" rx="0.6" fill="#161c25"/><path d="M4 5h4M4 6.9h3" stroke="#0a0e16" stroke-width="0.9"/></svg>`,
+  };
+  const PLABEL = { leak: 'PIPE LEAK', server: 'SERVER ALERT', spark: 'JUNCTION SHORT', clipboard: 'REVIEW REQ' };
+  const PROBLEM_SPEC = { leak: { pos: 'left' }, server: { pos: 'right' }, spark: { pos: 'left' }, clipboard: { pos: 'review' } };
+  const PROBLEM_KINDS = ['leak', 'server', 'spark', 'clipboard'];
+
+  const RMOTION = (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const TRAVEL_MS = RMOTION ? 120 : 950;
+
+  function roomPlan(status, idx) {
+    const kind = PROBLEM_KINDS[idx % PROBLEM_KINDS.length];
+    switch (status) {
+      case 'WORKING': case 'ACTIVE':
+        return { state: 'working', pos: PROBLEM_SPEC[kind].pos, problem: kind, light: 'busy', tool: true };
+      case 'REVIEWING': case 'REVIEW':
+        return { state: 'reviewing', pos: 'review', problem: '', light: 'busy', tablet: true };
+      case 'BLOCKED':
+        return { state: 'blocked', pos: PROBLEM_SPEC[kind].pos, problem: kind, light: 'busy' };
+      case 'ERROR':
+        return { state: 'error', pos: PROBLEM_SPEC[kind].pos, problem: kind, light: 'err' };
+      case 'DONE': case 'COMPLETE':
+        return { state: 'complete', pos: 'desk', problem: '', light: 'ok', monitorDone: true };
+      default:
+        return { state: 'idle', pos: 'desk', problem: '', light: 'ok' };
+    }
+  }
+
+  function buildRoomHTML(r, model, plan, color) {
+    return `<div class="room${plan.monitorDone ? ' room-monitor-done' : ''}" data-repo="${escHtml(r.name)}">
+      <div class="room-wall"></div>
+      <div class="room-pipes left"></div>
+      <div class="room-pipes right"></div>
+      <div class="room-shelf"><div class="shelf-box"></div></div>
+      <div class="room-junction"></div>
+      <div class="room-server"><span class="server-dot"></span></div>
+      <div class="room-floor"></div>
+      <div class="room-desk">
+        <div class="desk-top"></div>
+        <div class="desk-leg l1"></div>
+        <div class="desk-leg l2"></div>
+        <div class="desk-mug"></div>
+        <div class="desk-monitor">
+          <div class="monitor-screen"></div>
+          <div class="monitor-stand"></div>
+          <div class="monitor-base"></div>
+          <svg class="done-check" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.2 L4.8 9 L10 3" fill="none" stroke="#34d058" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="room-chair">
+        <div class="chair-back"></div>
+        <div class="chair-seat"></div>
+        <div class="chair-post"></div>
+        <div class="chair-base"></div>
+      </div>
+      <div class="room-light st-${plan.light}"></div>
+      ${plan.problem ? `<div class="room-problem p-${plan.problem}"><span class="p-icon">${ICON_SVG[plan.problem]}</span><span class="p-label">${PLABEL[plan.problem]}</span></div>` : ''}
+      ${model ? `<div class="room-bot rpos-${plan.pos}">
+        <div class="boiler-bot" data-state="${plan.state}" data-model="${model}" title="${escHtml(model)} — ${plan.state}">
+          <div class="bot-body">${createBotSVG(color, plan.state)}</div>
+          <div class="bot-badge">${escHtml(model)}</div>
+          <div class="room-tool">${WRENCH_SVG}</div>
+          <div class="room-tablet"><span></span><span></span><span></span></div>
+        </div>
+      </div>` : ''}
+    </div>`;
+  }
+
   function renderWorkstations() {
     const floor = document.getElementById('workstationFloor');
     const empty = document.getElementById('emptyState');
@@ -336,19 +408,22 @@
     if (repos.length === 0) { floor.innerHTML = ''; empty.style.display = ''; return; }
     empty.style.display = 'none';
 
-    floor.innerHTML = repos.map(r => {
+    floor.innerHTML = repos.map((r, i) => {
       const key = getMetaKey(r);
       const meta = state.metadata[key] || {};
       const status = (meta.aiStatus || 'IDLE').toUpperCase();
       const model = meta.aiModel || '';
+      const color = model ? getModelColor(model) : null;
       const ctx = meta.contextPct != null ? meta.contextPct : null;
       const ctxClass = ctx != null ? (ctx > 80 ? 'critical' : ctx > 50 ? 'warning' : 'normal') : '';
       const ctxWidth = ctx != null ? ctx : 0;
       const tags = (meta.tags || []).slice(0, 3);
       const ago = timeAgo(r.pushed_at);
+      const statusSlug = status === 'ACTIVE' || status === 'WORKING' ? 'ACTIVE' : status === 'BLOCKED' ? 'BLOCKED' : status === 'REVIEW' || status === 'REVIEWING' ? 'REVIEW' : status === 'DONE' || status === 'COMPLETE' ? 'DONE' : '';
 
-      return `<div class="workstation" onclick="openModal('${escHtml(r.full_name)}')" tabindex="0" role="button" aria-label="Open ${escHtml(r.name)}">
-        <div class="workstation-status s-${status === 'ACTIVE' || status === 'WORKING' ? 'ACTIVE' : status === 'BLOCKED' ? 'BLOCKED' : status === 'REVIEW' || status === 'REVIEWING' ? 'REVIEW' : status === 'DONE' || status === 'COMPLETE' ? 'DONE' : ''}"></div>
+      return `<div class="workstation" data-key="${escHtml(key)}" onclick="openModal('${escHtml(r.full_name)}')" tabindex="0" role="button" aria-label="Open ${escHtml(r.name)}">
+        <div class="workstation-status s-${statusSlug}"></div>
+        ${buildRoomHTML(r, model, roomPlan(status, i), color)}
         <div class="workstation-body">
           <div class="workstation-header">
             <span class="workstation-name">${escHtml(r.name)}</span>
@@ -367,9 +442,198 @@
           </div>
           ${tags.length > 0 ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">${tags.map(t => `<span class="badge badge-status" style="color:var(--text-muted);border-color:var(--border)">${escHtml(t)}</span>`).join('')}</div>` : ''}
         </div>
-        ${model ? `<div class="workstation-bot">${createBotElement(model, status === 'WORKING' || status === 'ACTIVE' ? 'working' : status === 'REVIEWING' || status === 'REVIEW' ? 'reviewing' : status === 'BLOCKED' ? 'blocked' : status === 'DONE' || status === 'COMPLETE' ? 'complete' : 'idle', true).outerHTML}</div>` : ''}
       </div>`;
     }).join('');
+
+    bindRooms();
+  }
+
+  /* =========================================================
+     ROOM LIFECYCLE — Demo Mode living rooms
+     ========================================================= */
+  const roomCtl = new Map();
+  const randMs = max => Math.floor(Math.random() * max);
+
+  function schedule(ctl, ms, fn) {
+    if (ctl.timer) clearTimeout(ctl.timer);
+    ctl.timer = setTimeout(() => { ctl.timer = null; fn(); }, ms);
+  }
+
+  function roomVisFromMeta(repo) {
+    const meta = state.metadata[getMetaKey(repo)] || {};
+    const status = (meta.aiStatus || 'IDLE').toUpperCase();
+    const kind = PROBLEM_KINDS[getMetaKey(repo).length % PROBLEM_KINDS.length];
+    const spec = PROBLEM_SPEC[kind];
+    switch (status) {
+      case 'WORKING': case 'ACTIVE':
+        return { state: 'working', pos: spec.pos, problem: kind, light: 'busy', tool: true, tablet: false, monitorDone: false, moving: false };
+      case 'REVIEWING': case 'REVIEW':
+        return { state: 'reviewing', pos: 'review', problem: '', light: 'busy', tool: false, tablet: true, monitorDone: false, moving: false };
+      case 'BLOCKED':
+        return { state: 'blocked', pos: spec.pos, problem: kind, light: 'busy', tool: false, tablet: false, monitorDone: false, moving: false };
+      case 'ERROR':
+        return { state: 'error', pos: spec.pos, problem: kind, light: 'err', tool: false, tablet: false, monitorDone: false, moving: false };
+      case 'DONE': case 'COMPLETE':
+        return { state: 'complete', pos: 'desk', problem: '', light: 'ok', tool: false, tablet: false, monitorDone: true, moving: false };
+      default:
+        return { state: 'idle', pos: 'desk', problem: '', light: 'ok', tool: false, tablet: false, monitorDone: false, moving: false };
+    }
+  }
+
+  function bindRooms() {
+    if (!state.isDemo) return;
+    document.querySelectorAll('#workstationFloor .workstation').forEach(ws => {
+      const key = ws.getAttribute('data-key');
+      if (!key || !ws.querySelector('.room-bot .boiler-bot')) return;
+      const repo = state.repos.find(r => getMetaKey(r) === key);
+      if (!repo) return;
+      let ctl = roomCtl.get(key);
+      if (!ctl) {
+        ctl = { key, repo, timer: null, armed: false, job: false, ref: null, vis: roomVisFromMeta(repo) };
+        roomCtl.set(key, ctl);
+      }
+      attachRoomRefs(ctl, ws);
+      applyVis(ctl);
+      if (!ctl.armed) { ctl.armed = true; armRoom(ctl); }
+    });
+  }
+
+  function attachRoomRefs(ctl, ws) {
+    const roomEl = ws.querySelector('.room');
+    ctl.ref = {
+      roomEl,
+      bot: roomEl.querySelector('.room-bot .boiler-bot'),
+      roomBot: roomEl.querySelector('.room-bot'),
+      light: roomEl.querySelector('.room-light'),
+      problem: roomEl.querySelector('.room-problem'),
+      tool: roomEl.querySelector('.room-tool'),
+      tablet: roomEl.querySelector('.room-tablet')
+    };
+  }
+
+  function applyVis(ctl) {
+    const vis = ctl.vis;
+    const ref = ctl.ref;
+    if (!ref.roomEl || !ref.bot) return;
+    setBotFace(ref.bot, vis.state);
+    ref.roomBot.classList.remove('rpos-desk', 'rpos-left', 'rpos-right', 'rpos-review', 'rpos-center');
+    ref.roomBot.classList.add('rpos-' + vis.pos);
+    if (vis.moving) ref.roomBot.setAttribute('data-walking', '');
+    else ref.roomBot.removeAttribute('data-walking');
+    ref.light.className = 'room-light st-' + vis.light;
+    if (vis.problem) {
+      if (ref.problem) { ref.problem.className = 'room-problem p-' + vis.problem; ref.problem.style.display = ''; }
+    } else if (ref.problem) ref.problem.style.display = 'none';
+    ref.tool.classList.toggle('on', !!vis.tool);
+    ref.tablet.classList.toggle('on', !!vis.tablet && vis.state === 'reviewing');
+    ref.roomEl.classList.toggle('room-monitor-done', !!vis.monitorDone);
+    ref.roomEl.classList.toggle('room-settled', vis.state === 'complete');
+    ref.roomEl.classList.toggle('room-busy', vis.state === 'working' || vis.state === 'reviewing');
+  }
+
+  function setBotFace(bot, state) {
+    if (bot.dataset.state === state) return;
+    const color = getModelColor(bot.dataset.model);
+    bot.dataset.state = state;
+    bot.title = `${bot.dataset.model} — ${state}`;
+    const face = bot.querySelector('.bot-body');
+    face.innerHTML = createBotSVG(color, state);
+  }
+
+  function stage(ctl, patch) {
+    Object.assign(ctl.vis, patch);
+    applyVis(ctl);
+  }
+
+  function armRoom(ctl) {
+    const status = (state.metadata[getMetaKey(ctl.repo)] || {}).aiStatus || 'IDLE';
+    const s = status.toUpperCase();
+    if (s === 'WORKING' || s === 'ACTIVE') { ctl.job = true; schedule(ctl, 5000 + randMs(2500), () => toReview(ctl)); }
+    else if (s === 'REVIEWING' || s === 'REVIEW') { ctl.job = true; schedule(ctl, 4000 + randMs(2000), () => resolve(ctl)); }
+    else if (s === 'BLOCKED') { ctl.job = true; schedule(ctl, 9000 + randMs(7000), () => resolve(ctl)); }
+    else if (s === 'DONE' || s === 'COMPLETE') { schedule(ctl, 8000 + randMs(8000), () => beginJob(ctl)); }
+    else { schedule(ctl, 6000 + randMs(9000), () => beginJob(ctl)); }
+  }
+
+  function beginJob(ctl) {
+    if (!state.isDemo || ctl.job) return;
+    ctl.job = true;
+    const kind = PROBLEM_KINDS[Math.floor(Math.random() * PROBLEM_KINDS.length)];
+    const spec = PROBLEM_SPEC[kind];
+    const model = (state.metadata[getMetaKey(ctl.repo)] || {}).aiModel || 'Worker';
+    setMetaStatus(ctl, 'WORKING');
+    term(ctl.repo.name, model, 'maintenance task received', 'WORKING');
+    stage(ctl, { problem: kind, light: 'busy' });
+    schedule(ctl, (RMOTION ? 120 : 900) + randMs(600), () => {
+      setBotFace(ctl.ref.bot, 'reviewing');
+      schedule(ctl, RMOTION ? 120 : 700, () => {
+        stage(ctl, { state: 'idle', pos: spec.pos, moving: true, tool: false, tablet: false });
+        schedule(ctl, TRAVEL_MS, () => {
+          stage(ctl, { moving: false, state: 'working', tool: true });
+          schedule(ctl, (RMOTION ? 600 : 4500) + randMs(RMOTION ? 400 : 3500), () => toReview(ctl));
+        });
+      });
+    });
+  }
+
+  function toReview(ctl) {
+    stage(ctl, { tool: false, state: 'idle' });
+    stage(ctl, { pos: 'review', moving: true });
+    schedule(ctl, TRAVEL_MS, () => {
+      stage(ctl, { moving: false, state: 'reviewing', tablet: true });
+      schedule(ctl, (RMOTION ? 500 : 3500) + randMs(RMOTION ? 300 : 2500), () => resolve(ctl));
+    });
+  }
+
+  function resolve(ctl) {
+    const r = Math.random();
+    if (r < 0.6) return finishComplete(ctl);
+    if (r < 0.88) return blockJob(ctl);
+    return errJob(ctl);
+  }
+
+  function blockJob(ctl) {
+    setMetaStatus(ctl, 'BLOCKED');
+    term(ctl.repo.name, (state.metadata[getMetaKey(ctl.repo)] || {}).aiModel || 'Worker', 'blocked — needs attention', 'BLOCKED');
+    stage(ctl, { tablet: false, state: 'blocked' });
+    schedule(ctl, (RMOTION ? 900 : 8000) + randMs(7000), () => finishComplete(ctl));
+  }
+
+  function errJob(ctl) {
+    setMetaStatus(ctl, 'ERROR');
+    term(ctl.repo.name, (state.metadata[getMetaKey(ctl.repo)] || {}).aiModel || 'Worker', 'error — clearing fault', 'BLOCKED');
+    stage(ctl, { tablet: false, state: 'error', light: 'err' });
+    schedule(ctl, (RMOTION ? 800 : 6000) + randMs(5000), () => finishComplete(ctl));
+  }
+
+  function finishComplete(ctl) {
+    setMetaStatus(ctl, 'DONE');
+    term(ctl.repo.name, (state.metadata[getMetaKey(ctl.repo)] || {}).aiModel || 'Worker', 'task complete', 'DONE');
+    stage(ctl, { problem: '', light: 'ok', tablet: false, tool: false, state: 'idle' });
+    stage(ctl, { pos: 'desk', moving: true });
+    schedule(ctl, TRAVEL_MS, () => {
+      stage(ctl, { moving: false, state: 'complete', monitorDone: true });
+      ctl.job = false;
+      schedule(ctl, 9000 + randMs(16000), () => beginJob(ctl));
+    });
+  }
+
+  function setMetaStatus(ctl, status) {
+    if (!state.isDemo) return;
+    const meta = state.metadata[getMetaKey(ctl.repo)];
+    if (meta) meta.aiStatus = status;
+    renderBoiler();
+    renderAIBay();
+  }
+
+  function term(repo, bot, msg, status) {
+    const time = new Date().toTimeString().slice(0, 5);
+    addTerminalLine(time, bot, repo, status);
+  }
+
+  function clearRoomRuntime() {
+    roomCtl.forEach(c => { if (c.timer) clearTimeout(c.timer); });
+    roomCtl.clear();
   }
 
   /* =========================================================
@@ -571,6 +835,7 @@
      DEMO MODE
      ========================================================= */
   window.enterDemo = function() {
+    clearRoomRuntime();
     state.isDemo = true;
     state.repos = SEED_DATA;
     // Assign demo AI statuses for visual interest
@@ -592,6 +857,7 @@
   };
 
   window.exitDemo = function() {
+    clearRoomRuntime();
     state.isDemo = false; state.user = null; state.repos = [];
     showLanding();
   };
