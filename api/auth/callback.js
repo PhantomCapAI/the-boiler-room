@@ -61,13 +61,11 @@ module.exports = async function handler(req, res) {
     const sessionToken = createSession(user, accessToken);
     setSessionCookie(res, sessionToken);
 
-    // Clear state cookie
-    res.setHeader('Set-Cookie', [
-      `oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
-    ]);
+    // Clear state cookie (append so the session cookie above is preserved)
+    res.appendHeader('Set-Cookie', 'oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
 
-    // Redirect to dashboard
-    res.writeHead(302, { Location: '/dashboard' });
+    // Redirect to the application root; the SPA boots to the dashboard when a session exists
+    res.writeHead(302, { Location: '/' });
     res.end();
 
   } catch (err) {
