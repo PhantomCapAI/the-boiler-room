@@ -29,26 +29,90 @@
   }
 
   /* =========================================================
-     BOILER BOT SVG — Original blob creature design
+     BOILER BOT V2 — Compact maintenance robot
+     Pressure-tank body, visor face screen, six states.
+     API unchanged: createBotSVG(color, state)
      ========================================================= */
+  const VISOR_DARK = '#0a0e16';
+  const DIAL_DARK = '#0e131b';
+  const SCREEN_LIGHT = '#d8f4ff';
+  const SCREEN_DARK = '#10141c';
+  const STEEL = '#5a6b82';
+  const STEEL_DARK = '#2a3444';
+  const BRASS = '#c8a94e';
+
+  function darkenColor(hex, pct) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, (num >> 16) - pct);
+    const g = Math.max(0, ((num >> 8) & 0xff) - pct);
+    const b = Math.max(0, (num & 0xff) - pct);
+    return `rgb(${r},${g},${b})`;
+  }
+
   function createBotSVG(color, state) {
-    const eyeScale = state === 'blocked' ? '0.6' : '1';
-    const mouthPath = state === 'blocked' ? 'M6 13 Q9 11 12 13'
-      : state === 'error' ? 'M6 13 Q9 15 12 13'
-      : state === 'complete' ? 'M5 12 Q9 16 13 12'
-      : 'M6 13 Q9 14 12 13';
-    // Use opacity gradients instead of url() to avoid ID collisions
     const lighter = lightenColor(color, 30);
-    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="12" cy="13" rx="8" ry="7" fill="${color}"/>
-      <ellipse cx="12" cy="11" rx="6" ry="4" fill="${lighter}" opacity="0.3"/>
-      <ellipse class="bot-eye" cx="9" cy="11" rx="1.8" ry="${2 * eyeScale}" fill="#fff"/>
-      <ellipse class="bot-eye" cx="15" cy="11" rx="1.8" ry="${2 * eyeScale}" fill="#fff"/>
-      <circle cx="9.5" cy="11" r="0.9" fill="#1a1a2e"/>
-      <circle cx="15.5" cy="11" r="0.9" fill="#1a1a2e"/>
-      <path d="${mouthPath}" stroke="#1a1a2e" stroke-width="0.8" fill="none" stroke-linecap="round"/>
-      <ellipse cx="9" cy="19.5" rx="2" ry="1.2" fill="${color}" opacity="0.7"/>
-      <ellipse cx="15" cy="19.5" rx="2" ry="1.2" fill="${color}" opacity="0.7"/>
+    const darker = darkenColor(color, 45);
+    let eyes, mouth, visorEdge, knob;
+
+    switch (state) {
+      case 'working': // focused slit eyes, flat determined mouth
+        eyes = `<g class="bot-eye"><rect x="7.8" y="8.2" width="3.6" height="1.6" rx="0.8" fill="${SCREEN_LIGHT}"/></g><g class="bot-eye"><rect x="12.6" y="8.2" width="3.6" height="1.6" rx="0.8" fill="${SCREEN_LIGHT}"/></g>`;
+        mouth = `<path d="M9.8 11.0 L14.2 11.0" stroke="${SCREEN_LIGHT}" stroke-width="0.9" stroke-linecap="round" opacity="0.85"/>`;
+        visorEdge = 'none'; knob = BRASS;
+        break;
+      case 'reviewing': // analytical side-glance + visor scan sweep
+        eyes = `<g class="bot-eye"><rect x="8.0" y="8.4" width="3.2" height="1.1" rx="0.55" fill="${SCREEN_LIGHT}" opacity="0.8"/><circle cx="10.3" cy="9.0" r="0.9" fill="${SCREEN_LIGHT}"/></g><g class="bot-eye"><rect x="12.8" y="8.4" width="3.2" height="1.1" rx="0.55" fill="${SCREEN_LIGHT}" opacity="0.8"/><circle cx="15.1" cy="9.0" r="0.9" fill="${SCREEN_LIGHT}"/></g>`;
+        mouth = `<path d="M10.4 11.0 L14.2 11.0" stroke="${SCREEN_LIGHT}" stroke-width="0.8" stroke-linecap="round" opacity="0.7"/>`;
+        visorEdge = 'none'; knob = BRASS;
+        break;
+      case 'blocked': // worried brows, wide eyes, small pupils, amber warning
+        eyes = `<g class="bot-eye"><circle cx="9.6" cy="9.0" r="1.6" fill="${SCREEN_LIGHT}"/><circle cx="9.8" cy="9.4" r="0.65" fill="${SCREEN_DARK}"/></g><g class="bot-eye"><circle cx="14.4" cy="9.0" r="1.6" fill="${SCREEN_LIGHT}"/><circle cx="14.2" cy="9.4" r="0.65" fill="${SCREEN_DARK}"/></g><path d="M8.2 6.9 L10.5 6.4 M15.8 6.9 L13.5 6.4" stroke="${STEEL}" stroke-width="1.0" stroke-linecap="round"/>`;
+        mouth = `<path d="M10.6 10.9 Q12 10.2 13.4 10.9" stroke="${SCREEN_LIGHT}" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>`;
+        visorEdge = '#e3b341'; knob = '#e3b341';
+        break;
+      case 'complete': // happy arcs and wide smile
+        eyes = `<g class="bot-eye"><path d="M8.0 9.6 Q9.6 7.8 11.2 9.6" stroke="${SCREEN_LIGHT}" stroke-width="1.4" fill="none" stroke-linecap="round"/></g><g class="bot-eye"><path d="M12.8 9.6 Q14.4 7.8 16.0 9.6" stroke="${SCREEN_LIGHT}" stroke-width="1.4" fill="none" stroke-linecap="round"/></g>`;
+        mouth = `<path d="M9.6 10.7 Q12 12.0 14.4 10.7" stroke="${SCREEN_LIGHT}" stroke-width="1.0" stroke-linecap="round"/>`;
+        visorEdge = 'none'; knob = BRASS;
+        break;
+      case 'error': // X eyes, wavy mouth, red warning frame
+        eyes = `<g class="bot-eye"><path d="M8.2 7.6 L11.0 10.4 M11.0 7.6 L8.2 10.4" stroke="${SCREEN_LIGHT}" stroke-width="1.5" stroke-linecap="round"/></g><g class="bot-eye"><path d="M13.0 7.6 L15.8 10.4 M15.8 7.6 L13.0 10.4" stroke="${SCREEN_LIGHT}" stroke-width="1.5" stroke-linecap="round"/></g>`;
+        mouth = `<path d="M10.2 10.8 Q11.1 10.3 12 10.8 Q12.9 11.3 13.8 10.8" stroke="${SCREEN_LIGHT}" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>`;
+        visorEdge = '#f85149'; knob = '#f85149';
+        break;
+      default: // idle — soft pill eyes, gentle smile
+        eyes = `<g class="bot-eye"><rect x="7.9" y="7.4" width="3.4" height="3.0" rx="1.5" fill="${SCREEN_LIGHT}" opacity="0.92"/></g><g class="bot-eye"><rect x="12.7" y="7.4" width="3.4" height="3.0" rx="1.5" fill="${SCREEN_LIGHT}" opacity="0.92"/></g>`;
+        mouth = `<path d="M9.8 10.7 Q12 11.5 14.2 10.7" stroke="${SCREEN_LIGHT}" stroke-width="0.9" stroke-linecap="round" opacity="0.85"/>`;
+        visorEdge = 'none'; knob = BRASS;
+    }
+
+    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="12" y1="4.4" x2="12" y2="2.8" stroke="${STEEL_DARK}" stroke-width="1.1" stroke-linecap="round"/>
+      <circle cx="12" cy="2.2" r="1.1" fill="${knob}"/>
+      <rect x="4.6" y="4.5" width="14.8" height="15.5" rx="7.4" fill="${color}"/>
+      <path d="M6.2 7.4 Q7.2 6.3 8.7 6.3 L9.4 6.4" stroke="${lighter}" stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.5"/>
+      <path class="bot-arm" d="M5.0 12.2 L3.1 12.7" stroke="${darker}" stroke-width="2.3" stroke-linecap="round"/>
+      <circle cx="2.7" cy="12.9" r="1.2" fill="${darker}"/>
+      <path class="bot-arm" d="M19.0 12.2 L20.9 12.7" stroke="${darker}" stroke-width="2.3" stroke-linecap="round"/>
+      <circle cx="21.3" cy="12.9" r="1.2" fill="${darker}"/>
+      <path class="bot-leg" d="M9.6 20.0 L9.6 21.2" stroke="${darker}" stroke-width="2.2" stroke-linecap="round"/>
+      <path class="bot-leg" d="M14.4 20.0 L14.4 21.2" stroke="${darker}" stroke-width="2.2" stroke-linecap="round"/>
+      <path class="bot-foot" d="M8.4 21.6 L10.8 21.6" stroke="${darker}" stroke-width="2.2" stroke-linecap="round"/>
+      <path class="bot-foot" d="M13.2 21.6 L15.6 21.6" stroke="${darker}" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="7.2" y1="13.3" x2="7.2" y2="14.3" stroke="${STEEL_DARK}" stroke-width="0.8" stroke-linecap="round"/>
+      <line x1="7.2" y1="15.0" x2="7.2" y2="16.0" stroke="${STEEL_DARK}" stroke-width="0.8" stroke-linecap="round"/>
+      <line x1="7.2" y1="16.7" x2="7.2" y2="17.7" stroke="${STEEL_DARK}" stroke-width="0.8" stroke-linecap="round"/>
+      <rect x="6.6" y="6.4" width="10.8" height="5.4" rx="2.7" fill="${VISOR_DARK}" stroke="${visorEdge}" stroke-width="0.9"/>
+      ${state === 'reviewing' ? `<rect class="visor-scan" x="7.6" y="8.5" width="8.8" height="0.7" rx="0.35" fill="${SCREEN_LIGHT}" opacity="0.12"/>` : ''}
+      ${eyes}
+      ${mouth}
+      <line x1="6.3" y1="12.8" x2="17.7" y2="12.8" stroke="${lighter}" stroke-width="0.5" stroke-linecap="round" opacity="0.4"/>
+      <circle cx="7.4" cy="12.8" r="0.55" fill="${lighter}" opacity="0.6"/>
+      <circle cx="16.6" cy="12.8" r="0.55" fill="${lighter}" opacity="0.6"/>
+      <circle cx="12" cy="15.3" r="1.9" fill="${DIAL_DARK}"/>
+      <circle cx="12" cy="15.3" r="1.9" fill="none" stroke="${STEEL}" stroke-width="0.6"/>
+      <line x1="12" y1="15.3" x2="12.9" y2="14.3" stroke="${lighter}" stroke-width="0.7" stroke-linecap="round"/>
+      <circle cx="12" cy="15.3" r="0.5" fill="${lighter}"/>
     </svg>`;
   }
 
@@ -127,7 +191,7 @@
   }
   function showDashboard() {
     document.getElementById('landing').style.display = 'none';
-    document.getElementById('dashboard').style.display = '';
+    document.getElementById('dashboard').style.display = 'flex';
     renderHeaderNav();
     renderBoiler();
     renderAIBay();

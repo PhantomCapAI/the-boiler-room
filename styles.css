@@ -871,12 +871,30 @@ body {
 }
 
 /* Bot eyes blink */
-.bot-eye { animation: blink 4s ease-in-out infinite; }
-.bot-eye:nth-child(2) { animation-delay: 0.1s; }
+.bot-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 4s ease-in-out infinite;
+}
+
+.bot-eye + .bot-eye { animation-delay: 0.1s; }
 
 @keyframes blink {
   0%, 95%, 100% { transform: scaleY(1); }
   97% { transform: scaleY(0.1); }
+}
+
+/* REVIEWING — analytical visor scan sweep (motion only) */
+@media (prefers-reduced-motion: no-preference) {
+  .boiler-bot[data-state="reviewing"] .visor-scan {
+    transform-box: fill-box;
+    animation: visorScan 2.2s ease-in-out infinite;
+  }
+}
+
+@keyframes visorScan {
+  0%, 100% { transform: translateX(-3px); opacity: 0.08; }
+  50% { transform: translateX(3px); opacity: 0.85; }
 }
 
 /* Bot movement on catwalk */
