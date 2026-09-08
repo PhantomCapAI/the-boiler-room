@@ -1,73 +1,82 @@
 (() => {
   'use strict';
 
+  /* =========================================================
+     SEED DATA — Fictional demo repos only
+     ========================================================= */
   const SEED_DATA = [
-    {
-      id: 1,
-      name: 'example-api',
-      full_name: 'acme/example-api',
-      private: false,
-      html_url: 'https://github.com/acme/example-api',
-      description: 'REST API service for user management',
-      language: 'TypeScript',
-      default_branch: 'main',
-      updated_at: new Date(Date.now() - 2 * 3600000).toISOString(),
-      pushed_at: new Date(Date.now() - 3600000).toISOString(),
-      stargazers_count: 24,
-      forks_count: 3,
-      open_issues_count: 5,
-      owner: { login: 'acme', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' }
-    },
-    {
-      id: 2,
-      name: 'example-frontend',
-      full_name: 'acme/example-frontend',
-      private: false,
-      html_url: 'https://github.com/acme/example-frontend',
-      description: 'React dashboard with authentication',
-      language: 'JavaScript',
-      default_branch: 'main',
-      updated_at: new Date(Date.now() - 86400000).toISOString(),
-      pushed_at: new Date(Date.now() - 43200000).toISOString(),
-      stargazers_count: 12,
-      forks_count: 1,
-      open_issues_count: 8,
-      owner: { login: 'acme', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' }
-    },
-    {
-      id: 3,
-      name: 'example-agent',
-      full_name: 'acme/example-agent',
-      private: true,
-      html_url: 'https://github.com/acme/example-agent',
-      description: 'Python AI agent for automated testing',
-      language: 'Python',
-      default_branch: 'main',
-      updated_at: new Date(Date.now() - 172800000).toISOString(),
-      pushed_at: new Date(Date.now() - 86400000).toISOString(),
-      stargazers_count: 45,
-      forks_count: 7,
-      open_issues_count: 2,
-      owner: { login: 'acme', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' }
-    },
-    {
-      id: 4,
-      name: 'example-docs',
-      full_name: 'acme/example-docs',
-      private: false,
-      html_url: 'https://github.com/acme/example-docs',
-      description: 'Documentation site for internal APIs',
-      language: 'HTML',
-      default_branch: 'main',
-      updated_at: new Date(Date.now() - 604800000).toISOString(),
-      pushed_at: new Date(Date.now() - 604800000).toISOString(),
-      stargazers_count: 5,
-      forks_count: 2,
-      open_issues_count: 0,
-      owner: { login: 'acme', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' }
-    }
+    { id: 1, name: 'example-api', full_name: 'acme/example-api', private: false, html_url: 'https://github.com/acme/example-api', description: 'REST API service for user management', language: 'TypeScript', default_branch: 'main', updated_at: new Date(Date.now() - 2 * 3600000).toISOString(), pushed_at: new Date(Date.now() - 3600000).toISOString(), stargazers_count: 24, forks_count: 3, open_issues_count: 5, owner: { login: 'acme', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' } },
+    { id: 2, name: 'example-frontend', full_name: 'acme/example-frontend', private: false, html_url: 'https://github.com/acme/example-frontend', description: 'React dashboard with authentication', language: 'JavaScript', default_branch: 'main', updated_at: new Date(Date.now() - 86400000).toISOString(), pushed_at: new Date(Date.now() - 43200000).toISOString(), stargazers_count: 12, forks_count: 1, open_issues_count: 8, owner: { login: 'acme', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' } },
+    { id: 3, name: 'example-agent', full_name: 'acme/example-agent', private: true, html_url: 'https://github.com/acme/example-agent', description: 'Python AI agent for automated testing', language: 'Python', default_branch: 'main', updated_at: new Date(Date.now() - 172800000).toISOString(), pushed_at: new Date(Date.now() - 86400000).toISOString(), stargazers_count: 45, forks_count: 7, open_issues_count: 2, owner: { login: 'acme', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' } },
+    { id: 4, name: 'example-docs', full_name: 'acme/example-docs', private: false, html_url: 'https://github.com/acme/example-docs', description: 'Documentation site for internal APIs', language: 'HTML', default_branch: 'main', updated_at: new Date(Date.now() - 604800000).toISOString(), pushed_at: new Date(Date.now() - 604800000).toISOString(), stargazers_count: 5, forks_count: 2, open_issues_count: 0, owner: { login: 'acme', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' } }
   ];
 
+  /* =========================================================
+     MODEL PALETTE — Each AI model gets a unique bot color
+     ========================================================= */
+  const MODEL_COLORS = {
+    'Model A': '#4a9eff',
+    'Model B': '#a78bfa',
+    'Model C': '#f0883e',
+    'Codex': '#34d058',
+    'Claude': '#e3b341',
+    'MiMo': '#56d4dd',
+    'Local': '#8b98a8',
+  };
+
+  function getModelColor(model) {
+    return MODEL_COLORS[model] || '#6b7a90';
+  }
+
+  /* =========================================================
+     BOILER BOT SVG — Original blob creature design
+     ========================================================= */
+  function createBotSVG(color, state) {
+    const eyeScale = state === 'blocked' ? '0.6' : '1';
+    const mouthPath = state === 'blocked' ? 'M6 13 Q9 11 12 13'
+      : state === 'error' ? 'M6 13 Q9 15 12 13'
+      : state === 'complete' ? 'M5 12 Q9 16 13 12'
+      : 'M6 13 Q9 14 12 13';
+    // Use opacity gradients instead of url() to avoid ID collisions
+    const lighter = lightenColor(color, 30);
+    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="12" cy="13" rx="8" ry="7" fill="${color}"/>
+      <ellipse cx="12" cy="11" rx="6" ry="4" fill="${lighter}" opacity="0.3"/>
+      <ellipse class="bot-eye" cx="9" cy="11" rx="1.8" ry="${2 * eyeScale}" fill="#fff"/>
+      <ellipse class="bot-eye" cx="15" cy="11" rx="1.8" ry="${2 * eyeScale}" fill="#fff"/>
+      <circle cx="9.5" cy="11" r="0.9" fill="#1a1a2e"/>
+      <circle cx="15.5" cy="11" r="0.9" fill="#1a1a2e"/>
+      <path d="${mouthPath}" stroke="#1a1a2e" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="9" cy="19.5" rx="2" ry="1.2" fill="${color}" opacity="0.7"/>
+      <ellipse cx="15" cy="19.5" rx="2" ry="1.2" fill="${color}" opacity="0.7"/>
+    </svg>`;
+  }
+
+  function lightenColor(hex, pct) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, (num >> 16) + pct);
+    const g = Math.min(255, ((num >> 8) & 0xff) + pct);
+    const b = Math.min(255, (num & 0xff) + pct);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function createBotElement(model, state, small) {
+    const color = getModelColor(model);
+    const el = document.createElement('div');
+    el.className = 'boiler-bot' + (small ? ' bot-sm' : '');
+    el.dataset.state = state || 'idle';
+    el.dataset.model = model;
+    el.title = `${model} — ${state || 'idle'}`;
+    el.innerHTML = `
+      <div class="bot-body">${createBotSVG(color, state)}</div>
+      <div class="bot-badge">${model}</div>
+    `;
+    return el;
+  }
+
+  /* =========================================================
+     STATE
+     ========================================================= */
   const STORAGE_KEY = 'boilerroom_metadata';
   let state = {
     repos: [],
@@ -77,106 +86,158 @@
     sortBy: 'updated',
     currentRepo: null,
     isDemo: false,
-    user: null
+    user: null,
+    terminalLines: [],
+    botStates: {}
   };
 
-  // --- Persistence ---
   function loadMetadata() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch { return {}; }
+    try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : {}; }
+    catch { return {}; }
   }
-  function saveMetadata() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.metadata));
-  }
+  function saveMetadata() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.metadata)); }
   function getMeta(id) {
-    if (!state.metadata[id]) {
-      state.metadata[id] = { tags: [], sessionNotes: '', aiContext: '', pinned: false };
-    }
+    if (!state.metadata[id]) state.metadata[id] = { tags: [], sessionNotes: '', aiContext: '', pinned: false };
     return state.metadata[id];
   }
+  function getMetaKey(repo) { return repo.full_name || String(repo.id); }
 
-  // --- Auth ---
+  /* =========================================================
+     AUTH
+     ========================================================= */
   async function checkAuth() {
     try {
       const res = await fetch('/api/me');
-      if (res.ok) {
-        const user = await res.json();
-        state.user = user;
-        state.isDemo = false;
-        return true;
-      }
+      if (res.ok) { state.user = await res.json(); state.isDemo = false; return true; }
     } catch {}
     return false;
   }
-
   async function fetchRepos() {
-    try {
-      const res = await fetch('/api/repos');
-      if (!res.ok) throw new Error('Failed to fetch repos');
-      return await res.json();
-    } catch {
-      return null;
-    }
+    try { const res = await fetch('/api/repos'); if (!res.ok) throw 0; return await res.json(); }
+    catch { return null; }
   }
 
-  // --- View switching ---
+  /* =========================================================
+     VIEW SWITCHING
+     ========================================================= */
   function showLanding() {
     document.getElementById('landing').style.display = '';
     document.getElementById('dashboard').style.display = 'none';
     renderHeaderNav();
   }
-
   function showDashboard() {
     document.getElementById('landing').style.display = 'none';
     document.getElementById('dashboard').style.display = '';
     renderHeaderNav();
-    renderOverview();
-    renderRepos();
+    renderBoiler();
+    renderAIBay();
+    renderWorkstations();
+    renderTerminalInitial();
   }
 
   function renderHeaderNav() {
     const nav = document.getElementById('headerNav');
     if (state.user) {
-      nav.innerHTML = `
-        <div class="nav-user">
-          <img class="nav-avatar" src="${state.user.avatar_url}" alt="${state.user.login}">
-          <span class="nav-login">${state.user.login}</span>
-        </div>
-        <a href="/api/auth/logout" class="btn btn-sm btn-ghost">Sign out</a>
-      `;
+      nav.innerHTML = `<div class="nav-user"><img class="nav-avatar" src="${state.user.avatar_url}" alt="${state.user.login}"><span class="nav-login">${state.user.login}</span></div><a href="/api/auth/logout" class="btn btn-sm btn-ghost">Sign out</a>`;
     } else if (state.isDemo) {
-      nav.innerHTML = `
-        <span class="demo-badge">Demo Mode</span>
-        <button class="btn btn-sm btn-ghost" onclick="exitDemo()">Exit Demo</button>
-      `;
-    } else {
-      nav.innerHTML = '';
+      nav.innerHTML = `<span class="demo-badge">Demo Mode</span><button class="btn btn-sm btn-ghost" onclick="exitDemo()">Exit</button>`;
+    } else { nav.innerHTML = ''; }
+  }
+
+  /* =========================================================
+     BOILER — System pressure gauge
+     ========================================================= */
+  function calcPressure() {
+    const repos = state.repos;
+    if (!repos.length) return 0;
+    let pressure = 0;
+    repos.forEach(r => {
+      const meta = state.metadata[getMetaKey(r)] || {};
+      const status = (meta.aiStatus || 'IDLE').toUpperCase();
+      if (status === 'WORKING' || status === 'ACTIVE') pressure += 25;
+      else if (status === 'REVIEWING' || status === 'REVIEW') pressure += 15;
+      else if (status === 'BLOCKED') pressure += 20;
+      else if (status === 'PLANNING') pressure += 10;
+    });
+    return Math.min(100, Math.round((pressure / Math.max(repos.length, 1)) * 100));
+  }
+
+  function renderBoiler() {
+    const repos = state.repos;
+    const pressure = calcPressure();
+    const gauge = document.getElementById('boilerGauge');
+    const fill = document.getElementById('gaugeFill');
+    const val = document.getElementById('gaugeValue');
+
+    val.textContent = pressure + '%';
+    fill.style.width = pressure + '%';
+    fill.className = 'gauge-fill' + (pressure > 70 ? ' high' : pressure > 40 ? ' medium' : '');
+    gauge.className = 'boiler-gauge' + (pressure > 70 ? ' pressure-high' : pressure > 40 ? ' pressure-medium' : '');
+
+    // Count statuses from metadata
+    let active = 0, blocked = 0, review = 0, done = 0, pinned = 0;
+    repos.forEach(r => {
+      const meta = state.metadata[getMetaKey(r)] || {};
+      const s = (meta.aiStatus || 'IDLE').toUpperCase();
+      if (s === 'WORKING' || s === 'ACTIVE') active++;
+      else if (s === 'BLOCKED') blocked++;
+      else if (s === 'REVIEWING' || s === 'REVIEW') review++;
+      else if (s === 'DONE' || s === 'COMPLETE') done++;
+      if (meta.pinned) pinned++;
+    });
+
+    document.getElementById('statTotal').textContent = repos.length;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statBlocked').textContent = blocked;
+    document.getElementById('statReview').textContent = review;
+    document.getElementById('statDone').textContent = done;
+    document.getElementById('statPinned').textContent = pinned;
+  }
+
+  /* =========================================================
+     AI BAY — Idle bots
+     ========================================================= */
+  function renderAIBay() {
+    const bay = document.getElementById('aiBayBots');
+    bay.innerHTML = '';
+    // Collect unique models in use
+    const models = new Set();
+    state.repos.forEach(r => {
+      const meta = state.metadata[getMetaKey(r)] || {};
+      if (meta.aiModel) models.add(meta.aiModel);
+    });
+    // Also add some defaults for demo
+    if (state.isDemo && models.size === 0) {
+      ['Model A', 'Model B', 'Model C'].forEach(m => models.add(m));
+    }
+    models.forEach(model => {
+      const assignedRepos = state.repos.filter(r => {
+        const meta = state.metadata[getMetaKey(r)] || {};
+        return meta.aiModel === model || (state.isDemo && (
+          (model === 'Model A' && r.name.includes('api')) ||
+          (model === 'Model B' && r.name.includes('front')) ||
+          (model === 'Model C' && r.name.includes('agent'))
+        ));
+      });
+      const busyCount = assignedRepos.filter(r => {
+        const meta = state.metadata[getMetaKey(r)] || {};
+        const s = (meta.aiStatus || 'IDLE').toUpperCase();
+        return s === 'WORKING' || s === 'ACTIVE' || s === 'REVIEWING' || s === 'REVIEW';
+      }).length;
+      const botState = busyCount > 0 ? 'working' : 'idle';
+      bay.appendChild(createBotElement(model, botState, false));
+    });
+    // If no models at all, show a default idle bot
+    if (bay.children.length === 0) {
+      bay.appendChild(createBotElement('System', 'idle', false));
     }
   }
 
-  // --- Overview ---
-  function renderOverview() {
-    const repos = state.repos;
-    document.getElementById('statTotal').textContent = repos.length;
-    document.getElementById('statAnnotated').textContent = repos.filter(r => {
-      const m = state.metadata[r.id] || state.metadata[r.full_name];
-      return m && (m.tags.length > 0 || m.aiContext || m.sessionNotes);
-    }).length;
-    document.getElementById('statPinned').textContent = repos.filter(r => {
-      const m = state.metadata[r.id] || state.metadata[r.full_name];
-      return m && m.pinned;
-    }).length;
-    document.getElementById('statLast24h').textContent = repos.filter(r => {
-      const t = new Date(r.pushed_at).getTime();
-      return Date.now() - t < 86400000;
-    }).length;
-  }
-
-  // --- Repo grid ---
-  function renderRepos() {
-    const grid = document.getElementById('repoGrid');
+  /* =========================================================
+     WORKSTATIONS — Repo cards
+     ========================================================= */
+  function renderWorkstations() {
+    const floor = document.getElementById('workstationFloor');
     const empty = document.getElementById('emptyState');
     let repos = [...state.repos];
 
@@ -186,27 +247,13 @@
       repos = repos.filter(r => {
         const m = getMetaKey(r);
         const meta = state.metadata[m] || {};
-        return r.name.toLowerCase().includes(q) ||
-          (r.description || '').toLowerCase().includes(q) ||
-          (r.language || '').toLowerCase().includes(q) ||
-          (meta.tags || []).some(t => t.toLowerCase().includes(q)) ||
-          (meta.sessionNotes || '').toLowerCase().includes(q) ||
-          (meta.aiContext || '').toLowerCase().includes(q);
+        return r.name.toLowerCase().includes(q) || (r.description || '').toLowerCase().includes(q) || (r.language || '').toLowerCase().includes(q) || (meta.tags || []).some(t => t.toLowerCase().includes(q)) || (meta.sessionNotes || '').toLowerCase().includes(q) || (meta.aiContext || '').toLowerCase().includes(q);
       });
     }
 
     // Filter
-    if (state.filter === 'pinned') {
-      repos = repos.filter(r => {
-        const m = state.metadata[getMetaKey(r)];
-        return m && m.pinned;
-      });
-    } else if (state.filter === 'annotated') {
-      repos = repos.filter(r => {
-        const m = state.metadata[getMetaKey(r)];
-        return m && (m.tags.length > 0 || m.aiContext || m.sessionNotes);
-      });
-    }
+    if (state.filter === 'pinned') repos = repos.filter(r => { const m = state.metadata[getMetaKey(r)]; return m && m.pinned; });
+    else if (state.filter === 'annotated') repos = repos.filter(r => { const m = state.metadata[getMetaKey(r)]; return m && (m.tags.length > 0 || m.aiContext || m.sessionNotes); });
 
     // Sort
     repos.sort((a, b) => {
@@ -222,47 +269,78 @@
       }
     });
 
-    if (repos.length === 0) {
-      grid.innerHTML = '';
-      empty.style.display = '';
-      return;
-    }
+    if (repos.length === 0) { floor.innerHTML = ''; empty.style.display = ''; return; }
     empty.style.display = 'none';
 
-    grid.innerHTML = repos.map(r => {
+    floor.innerHTML = repos.map(r => {
       const key = getMetaKey(r);
       const meta = state.metadata[key] || {};
+      const status = (meta.aiStatus || 'IDLE').toUpperCase();
+      const model = meta.aiModel || '';
+      const ctx = meta.contextPct != null ? meta.contextPct : null;
+      const ctxClass = ctx != null ? (ctx > 80 ? 'critical' : ctx > 50 ? 'warning' : 'normal') : '';
+      const ctxWidth = ctx != null ? ctx : 0;
       const tags = (meta.tags || []).slice(0, 3);
       const ago = timeAgo(r.pushed_at);
-      const isPrivate = r.private;
-      return `
-        <div class="repo-card ${meta.pinned ? 'pinned' : ''}" onclick="openModal('${escHtml(r.full_name)}')" tabindex="0" role="button" aria-label="Open ${escHtml(r.name)}">
-          <div class="repo-header">
-            <div class="repo-name-row">
-              <span class="repo-name">${escHtml(r.name)}</span>
-              ${isPrivate ? '<span class="badge badge-private">Private</span>' : ''}
+
+      return `<div class="workstation" onclick="openModal('${escHtml(r.full_name)}')" tabindex="0" role="button" aria-label="Open ${escHtml(r.name)}">
+        <div class="workstation-status s-${status === 'ACTIVE' || status === 'WORKING' ? 'ACTIVE' : status === 'BLOCKED' ? 'BLOCKED' : status === 'REVIEW' || status === 'REVIEWING' ? 'REVIEW' : status === 'DONE' || status === 'COMPLETE' ? 'DONE' : ''}"></div>
+        <div class="workstation-body">
+          <div class="workstation-header">
+            <span class="workstation-name">${escHtml(r.name)}</span>
+            <div class="workstation-badges">
+              ${r.private ? '<span class="badge badge-private">Private</span>' : ''}
               ${meta.pinned ? '<span class="badge badge-pinned">Pinned</span>' : ''}
+              ${model ? `<span class="badge" style="color:${getModelColor(model)};border-color:${getModelColor(model)};background:${getModelColor(model)}22">${escHtml(model)}</span>` : ''}
             </div>
-            <span class="repo-time">${ago}</span>
           </div>
-          <p class="repo-desc">${escHtml(r.description || 'No description')}</p>
-          <div class="repo-meta">
-            ${r.language ? `<span class="repo-lang"><span class="lang-dot" style="background:${langColor(r.language)}"></span>${escHtml(r.language)}</span>` : ''}
-            <span class="repo-stars">⭐ ${r.stargazers_count}</span>
-            <span class="repo-forks">🍴 ${r.forks_count}</span>
+          <div class="workstation-desc">${escHtml(r.description || 'No description')}</div>
+          ${ctx != null ? `<div class="workstation-context"><div class="ctx-bar"><div class="ctx-fill ${ctxClass}" style="width:${ctxWidth}%"></div></div><span class="ctx-text ${ctxClass}">${ctx}%</span></div>` : ''}
+          <div class="workstation-meta">
+            ${r.language ? `<span class="lang"><span class="lang-dot" style="background:${langColor(r.language)}"></span>${escHtml(r.language)}</span>` : ''}
+            <span>⭐ ${r.stargazers_count}</span>
+            <span>${ago}</span>
           </div>
-          ${tags.length > 0 ? `<div class="repo-tags">${tags.map(t => `<span class="tag">${escHtml(t)}</span>`).join('')}</div>` : ''}
+          ${tags.length > 0 ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">${tags.map(t => `<span class="badge badge-status" style="color:var(--text-muted);border-color:var(--border)">${escHtml(t)}</span>`).join('')}</div>` : ''}
         </div>
-      `;
+        ${model ? `<div class="workstation-bot">${createBotElement(model, status === 'WORKING' || status === 'ACTIVE' ? 'working' : status === 'REVIEWING' || status === 'REVIEW' ? 'reviewing' : status === 'BLOCKED' ? 'blocked' : status === 'DONE' || status === 'COMPLETE' ? 'complete' : 'idle', true).outerHTML}</div>` : ''}
+      </div>`;
     }).join('');
   }
 
-  function getMetaKey(repo) {
-    // Use full_name if we have it (authenticated mode), else id (demo mode)
-    return repo.full_name || String(repo.id);
+  /* =========================================================
+     ACTIVITY TERMINAL
+     ========================================================= */
+  function renderTerminalInitial() {
+    const feed = document.getElementById('terminalFeed');
+    feed.innerHTML = '';
+    const now = new Date();
+    const time = now.toTimeString().slice(0, 5);
+
+    addTerminalLine(time, 'SYSTEM', 'Boiler Room online', 'ONLINE');
+
+    state.repos.forEach(r => {
+      const meta = state.metadata[getMetaKey(r)] || {};
+      const model = meta.aiModel || 'System';
+      const status = (meta.aiStatus || 'IDLE').toUpperCase();
+      addTerminalLine(time, model, r.name, status);
+    });
   }
 
-  // --- Modal ---
+  function addTerminalLine(time, bot, repo, status) {
+    const feed = document.getElementById('terminalFeed');
+    if (!feed) return;
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    line.innerHTML = `<span class="term-time">${escHtml(time)}</span><span class="term-bot">${escHtml(bot)}</span><span class="term-repo">${escHtml(repo)}</span><span class="term-status" data-status="${escHtml(status)}">${escHtml(status)}</span>`;
+    feed.insertBefore(line, feed.firstChild);
+    // Keep max 30 lines
+    while (feed.children.length > 30) feed.removeChild(feed.lastChild);
+  }
+
+  /* =========================================================
+     MODAL
+     ========================================================= */
   window.openModal = function(fullName) {
     const repo = state.repos.find(r => r.full_name === fullName || String(r.id) === fullName);
     if (!repo) return;
@@ -272,10 +350,7 @@
 
     document.getElementById('modalTitle').textContent = repo.name;
     document.getElementById('modalSubtitle').textContent = repo.full_name;
-    document.getElementById('modalBadges').innerHTML = `
-      ${repo.private ? '<span class="badge badge-private">Private</span>' : ''}
-      ${meta.pinned ? '<span class="badge badge-pinned">Pinned</span>' : ''}
-    `;
+    document.getElementById('modalBadges').innerHTML = `${repo.private ? '<span class="badge badge-private">Private</span>' : ''}${meta.pinned ? '<span class="badge badge-pinned">Pinned</span>' : ''}`;
 
     document.getElementById('editTags').value = (meta.tags || []).join(', ');
     document.getElementById('editSession').value = meta.sessionNotes || '';
@@ -290,11 +365,8 @@
     document.getElementById('detailVisibility').textContent = repo.private ? 'Private' : 'Public';
 
     generatePrompts(repo, meta);
-
     document.getElementById('modalOverlay').style.display = '';
     document.getElementById('editTags').focus();
-
-    // Reset tabs
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelector('.tab[data-tab="metadata"]').classList.add('active');
@@ -302,19 +374,11 @@
   };
 
   document.getElementById('modalClose').addEventListener('click', closeModal);
-  document.getElementById('modalOverlay').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
+  document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  function closeModal() {
-    document.getElementById('modalOverlay').style.display = 'none';
-    state.currentRepo = null;
-  }
+  function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; state.currentRepo = null; }
 
-  // Tabs
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -324,29 +388,32 @@
     });
   });
 
-  // Save metadata
   window.saveMetadata = function() {
     if (!state.currentRepo) return;
     const key = getMetaKey(state.currentRepo);
-    const tags = document.getElementById('editTags').value
-      .split(',').map(t => t.trim()).filter(Boolean);
+    const tags = document.getElementById('editTags').value.split(',').map(t => t.trim()).filter(Boolean);
     state.metadata[key] = {
       tags,
       sessionNotes: document.getElementById('editSession').value,
       aiContext: document.getElementById('editContext').value,
-      pinned: document.getElementById('editPinned').checked
+      pinned: document.getElementById('editPinned').checked,
+      aiModel: state.metadata[key]?.aiModel || '',
+      aiStatus: state.metadata[key]?.aiStatus || '',
+      contextPct: state.metadata[key]?.contextPct ?? null
     };
     saveMetadata();
-    renderOverview();
-    renderRepos();
+    renderBoiler();
+    renderAIBay();
+    renderWorkstations();
     showToast('Metadata saved');
   };
 
-  // --- Prompts ---
+  /* =========================================================
+     PROMPTS
+     ========================================================= */
   function generatePrompts(repo, meta) {
     const ctx = `Repo: ${repo.full_name}\nDescription: ${repo.description || 'N/A'}\nLanguage: ${repo.language || 'N/A'}\nBranch: ${repo.default_branch}\nTags: ${(meta.tags || []).join(', ') || 'none'}\nAI Context: ${meta.aiContext || 'none'}`;
     document.getElementById('promptContextText').textContent = ctx;
-
     const resume = meta.sessionNotes
       ? `Resume session for ${repo.full_name}.\nLast session notes:\n${meta.sessionNotes}\n\nContinue from where we left off.`
       : `Start a new session for ${repo.full_name}. No previous session notes found.`;
@@ -354,90 +421,75 @@
   }
 
   window.copyPrompt = function(type) {
-    const el = type === 'context'
-      ? document.getElementById('promptContextText')
-      : document.getElementById('promptResumeText');
+    const el = type === 'context' ? document.getElementById('promptContextText') : document.getElementById('promptResumeText');
     navigator.clipboard.writeText(el.textContent).then(() => showToast('Copied to clipboard'));
   };
 
-  // --- Import / Export / Reset ---
-  window.importData = function() {
-    document.getElementById('importInput').click();
-  };
-  document.getElementById('importInput').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  /* =========================================================
+     IMPORT / EXPORT / RESET
+     ========================================================= */
+  window.importData = function() { document.getElementById('importInput').click(); };
+  document.getElementById('importInput').addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = ev => {
       try {
         const imported = JSON.parse(ev.target.result);
         state.metadata = imported.metadata || imported;
         saveMetadata();
-        renderOverview();
-        renderRepos();
-        showToast('Data imported successfully');
-      } catch { showToast('Invalid JSON file'); }
+        renderBoiler(); renderAIBay(); renderWorkstations();
+        showToast('Data imported');
+      } catch { showToast('Invalid JSON'); }
     };
-    reader.readAsText(file);
-    e.target.value = '';
+    reader.readAsText(file); e.target.value = '';
   });
 
   window.exportData = function() {
     const data = { metadata: state.metadata, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+    const a = document.createElement('a'); a.href = url;
     a.download = `boilerroom-export-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Data exported');
+    a.click(); URL.revokeObjectURL(url); showToast('Data exported');
   };
 
   window.resetData = function() {
     if (confirm('Reset all local metadata? This cannot be undone.')) {
-      state.metadata = {};
-      saveMetadata();
-      renderOverview();
-      renderRepos();
+      state.metadata = {}; saveMetadata();
+      renderBoiler(); renderAIBay(); renderWorkstations();
       showToast('Metadata reset');
     }
   };
 
-  // --- Search & Filter ---
-  document.getElementById('searchInput').addEventListener('input', (e) => {
-    state.search = e.target.value;
-    renderRepos();
-  });
-  document.getElementById('sortBy').addEventListener('change', (e) => {
-    state.sortBy = e.target.value;
-    renderRepos();
-  });
+  /* =========================================================
+     SEARCH & FILTER
+     ========================================================= */
+  document.getElementById('searchInput').addEventListener('input', e => { state.search = e.target.value; renderWorkstations(); });
+  document.getElementById('sortBy').addEventListener('change', e => { state.sortBy = e.target.value; renderWorkstations(); });
   document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       state.filter = chip.dataset.filter;
-      renderRepos();
+      renderWorkstations();
     });
   });
 
-  // --- Toast ---
+  /* =========================================================
+     TOAST
+     ========================================================= */
   function showToast(msg) {
     const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = msg;
+    toast.className = 'toast'; toast.textContent = msg;
     document.getElementById('toastContainer').appendChild(toast);
     setTimeout(() => toast.classList.add('show'), 10);
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2000);
   }
 
-  // --- Helpers ---
-  function escHtml(s) {
-    const d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-  }
+  /* =========================================================
+     HELPERS
+     ========================================================= */
+  function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
   function timeAgo(dateStr) {
     const secs = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
     if (secs < 60) return 'just now';
@@ -447,32 +499,49 @@
     return new Date(dateStr).toLocaleDateString();
   }
   function langColor(lang) {
-    const colors = { TypeScript: '#3178c6', JavaScript: '#f1e05a', Python: '#3572A5', HTML: '#e34c26', CSS: '#563d7c', Go: '#00ADD8', Rust: '#dea584', Ruby: '#701516', Java: '#b07219' };
-    return colors[lang] || '#8b8b8b';
+    const c = { TypeScript: '#3178c6', JavaScript: '#f1e05a', Python: '#3572A5', HTML: '#e34c26', CSS: '#563d7c', Go: '#00ADD8', Rust: '#dea584', Ruby: '#701516', Java: '#b07219' };
+    return c[lang] || '#8b8b8b';
   }
 
-  // --- Demo mode ---
+  /* =========================================================
+     DEMO MODE
+     ========================================================= */
   window.enterDemo = function() {
     state.isDemo = true;
     state.repos = SEED_DATA;
+    // Assign demo AI statuses for visual interest
+    const demoAssign = [
+      { status: 'WORKING', model: 'Model A', ctx: 42 },
+      { status: 'BLOCKED', model: 'Model B', ctx: 78 },
+      { status: 'REVIEWING', model: 'Model C', ctx: 15 },
+      { status: 'DONE', model: 'Model A', ctx: 100 }
+    ];
+    SEED_DATA.forEach((r, i) => {
+      const key = getMetaKey(r);
+      if (!state.metadata[key]) state.metadata[key] = { tags: [], sessionNotes: '', aiContext: '', pinned: false };
+      const d = demoAssign[i] || demoAssign[0];
+      state.metadata[key].aiStatus = d.status;
+      state.metadata[key].aiModel = d.model;
+      state.metadata[key].contextPct = d.ctx;
+    });
     showDashboard();
   };
 
   window.exitDemo = function() {
-    state.isDemo = false;
-    state.user = null;
-    state.repos = [];
+    state.isDemo = false; state.user = null; state.repos = [];
     showLanding();
   };
 
-  // --- Keyboard: open card with Enter ---
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.target.classList.contains('repo-card')) {
-      e.target.click();
-    }
+  /* =========================================================
+     KEYBOARD
+     ========================================================= */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.classList.contains('workstation')) e.target.click();
   });
 
-  // --- Init ---
+  /* =========================================================
+     INIT
+     ========================================================= */
   async function init() {
     state.metadata = loadMetadata();
     const isAuthed = await checkAuth();
@@ -480,15 +549,9 @@
       document.getElementById('loadingState').style.display = '';
       const repos = await fetchRepos();
       document.getElementById('loadingState').style.display = 'none';
-      if (repos) {
-        state.repos = repos;
-        showDashboard();
-      } else {
-        showLanding();
-      }
-    } else {
-      showLanding();
-    }
+      if (repos) { state.repos = repos; showDashboard(); }
+      else { showLanding(); }
+    } else { showLanding(); }
   }
 
   init();

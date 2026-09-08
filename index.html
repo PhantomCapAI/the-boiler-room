@@ -4,95 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Boiler Room</title>
-    <meta name="description" content="Local-first control room for managing your GitHub repositories and AI coding sessions.">
+    <meta name="description" content="Local-first control room for developers juggling repositories and AI coding agents.">
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙</text></svg>">
 </head>
 <body>
     <div id="app">
         <header class="header" id="header">
             <div class="header-left">
                 <div class="logo">
-                    <span class="logo-icon">👻</span>
+                    <span class="logo-icon">⚙</span>
                     <span class="logo-text">The Boiler Room</span>
                 </div>
-                <span class="version-badge">v1.1</span>
+                <span class="version-badge">v2.0</span>
             </div>
-            <nav class="header-nav" id="headerNav">
-                <!-- Populated by JS based on auth state -->
-            </nav>
+            <nav class="header-nav" id="headerNav"></nav>
         </header>
 
-        <!-- LANDING PAGE (not authenticated) -->
+        <!-- LANDING PAGE -->
         <section class="landing" id="landing">
             <div class="landing-hero">
-                <div class="landing-icon">👻</div>
+                <div class="landing-icon">⚙</div>
                 <h1 class="landing-title">The Boiler Room</h1>
                 <p class="landing-subtitle">
-                    Local-first control room for managing your GitHub repositories
-                    and AI coding sessions. Your data stays in your browser.
+                    One control room for every repo and every AI coding session.
+                    Your data stays in your browser.
                 </p>
                 <div class="landing-actions">
                     <a href="/api/auth/login" class="btn btn-primary btn-lg">
-                        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
                         Continue with GitHub
                     </a>
-                    <button class="btn btn-ghost btn-lg" onclick="enterDemo()">
-                        Try Demo
-                    </button>
+                    <button class="btn btn-ghost btn-lg" onclick="enterDemo()">Try Demo</button>
                 </div>
-                <p class="landing-note">
-                    No data leaves your browser. GitHub OAuth is used for read-only access.
-                </p>
+                <p class="landing-note">No data leaves your browser. GitHub OAuth is read-only.</p>
             </div>
             <div class="landing-features">
                 <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Local-First</h3>
-                    <p>All metadata, tags, and prompts stay in your browser's localStorage. Nothing is sent to any server.</p>
+                    <div class="feature-icon">🏭</div>
+                    <h3>Control Room</h3>
+                    <p>See your entire AI development operation in one industrial dashboard.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🏷️</div>
-                    <h3>Rich Metadata</h3>
-                    <p>Add AI context, tags, session notes, and prompts to any GitHub repository. Organize your workflow.</p>
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Workers</h3>
+                    <p>Watch your Boiler Bots move between repositories and tasks.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Local-First</h3>
+                    <p>All metadata stays in your browser. Nothing is sent to any server.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📋</div>
                     <h3>One-Click Prompts</h3>
-                    <p>Copy AI-ready prompts for any repo. Include repo context, last session, and instructions instantly.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💾</div>
-                    <h3>Import / Export</h3>
-                    <p>Back up your entire dashboard as JSON. Share configs across devices or migrate seamlessly.</p>
+                    <p>Copy AI-ready prompts for any repo with full context instantly.</p>
                 </div>
             </div>
         </section>
 
-        <!-- DASHBOARD (authenticated or demo) -->
+        <!-- DASHBOARD — The Boiler Room -->
         <section class="dashboard" id="dashboard" style="display:none">
-            <div class="overview" id="overview">
-                <div class="stat-card">
-                    <div class="stat-number" id="statTotal">0</div>
-                    <div class="stat-label">Total Repos</div>
+
+            <!-- SYSTEM PRESSURE — Central Boiler -->
+            <div class="boiler-section">
+                <div class="boiler-gauge" id="boilerGauge">
+                    <div class="gauge-label">System Pressure</div>
+                    <div class="gauge-value" id="gaugeValue">0%</div>
+                    <div class="gauge-bar">
+                        <div class="gauge-fill" id="gaugeFill" style="width:0%"></div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="statAnnotated">0</div>
-                    <div class="stat-label">Annotated</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="statPinned">0</div>
-                    <div class="stat-label">Pinned</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="statLast24h">0</div>
-                    <div class="stat-label">Active (24h)</div>
+                <div class="status-strip" id="statusStrip">
+                    <div class="status-cell">
+                        <div class="status-num" id="statTotal">0</div>
+                        <div class="status-lbl">Total</div>
+                    </div>
+                    <div class="status-cell active">
+                        <div class="status-num" id="statActive">0</div>
+                        <div class="status-lbl">Active</div>
+                    </div>
+                    <div class="status-cell blocked">
+                        <div class="status-num" id="statBlocked">0</div>
+                        <div class="status-lbl">Blocked</div>
+                    </div>
+                    <div class="status-cell review">
+                        <div class="status-num" id="statReview">0</div>
+                        <div class="status-lbl">Review</div>
+                    </div>
+                    <div class="status-cell done">
+                        <div class="status-num" id="statDone">0</div>
+                        <div class="status-lbl">Done</div>
+                    </div>
+                    <div class="status-cell">
+                        <div class="status-num" id="statPinned">0</div>
+                        <div class="status-lbl">Pinned</div>
+                    </div>
                 </div>
             </div>
 
+            <!-- AI BAY — Where idle bots wait -->
+            <div class="ai-bay" id="aiBay">
+                <div class="ai-bay-label">AI Bay</div>
+                <div class="ai-bay-bots" id="aiBayBots"></div>
+            </div>
+
+            <!-- TOOLBAR -->
             <div class="toolbar">
                 <div class="search-wrapper">
-                    <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.499 4.499 0 11-8.998 0A4.499 4.499 0 0111.5 7zm-.82 4.74a6 6 0 111.06-1.06l3.04 3.04a.75.75 0 11-1.06 1.06l-3.04-3.04z"></path></svg>
+                    <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.499 4.499 0 11-8.998 0A4.499 4.499 0 0111.5 7zm-.82 4.74a6 6 0 111.06-1.06l3.04 3.04a.75.75 0 11-1.06 1.06l-3.04-3.04z"></path></svg>
                     <input type="text" id="searchInput" placeholder="Search repos, tags, notes..." autocomplete="off">
                 </div>
                 <div class="toolbar-right">
@@ -107,34 +127,46 @@
                         <button class="chip" data-filter="pinned">Pinned</button>
                         <button class="chip" data-filter="annotated">Annotated</button>
                     </div>
-                    <button class="btn btn-sm btn-ghost" onclick="importData()" title="Import JSON backup">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 12.5a.75.75 0 01-1.5 0 .75.75 0 011.5 0zM14 9.5a.75.75 0 00-1.5 0v3a.75.75 0 001.5 0v-3zM3.5 3.5a.75.75 0 01-1.5 0 .75.75 0 011.5 0zM14 6.5a.75.75 0 00-1.5 0v3a.75.75 0 001.5 0v-3z"></path><path d="M13.5 4l-5-3.5-5 3.5h3v5h4V4h3z"></path></svg>
-                        Import
-                    </button>
-                    <button class="btn btn-sm btn-ghost" onclick="exportData()" title="Export JSON backup">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 12.5a.75.75 0 01-1.5 0 .75.75 0 011.5 0zM14 9.5a.75.75 0 00-1.5 0v3a.75.75 0 001.5 0v-3zM3.5 3.5a.75.75 0 01-1.5 0 .75.75 0 011.5 0zM14 6.5a.75.75 0 00-1.5 0v3a.75.75 0 001.5 0v-3z"></path><path d="M13.5 12l-5 3.5-5-3.5h3v-5h4v5h3z"></path></svg>
-                        Export
-                    </button>
-                    <button class="btn btn-sm btn-ghost" onclick="resetData()" title="Reset to demo data">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 01-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"></path></svg>
-                        Reset
-                    </button>
+                    <button class="btn btn-sm btn-ghost" onclick="importData()" title="Import JSON backup">Import</button>
+                    <button class="btn btn-sm btn-ghost" onclick="exportData()" title="Export JSON backup">Export</button>
+                    <button class="btn btn-sm btn-ghost" onclick="resetData()" title="Reset to demo data">Reset</button>
                 </div>
             </div>
 
-            <div class="repo-grid" id="repoGrid">
-                <!-- Repos populated by JS -->
-            </div>
+            <!-- WORKSTATION FLOOR — Repo stations -->
+            <div class="workstation-floor" id="workstationFloor"></div>
 
+            <!-- Empty state -->
             <div class="empty-state" id="emptyState" style="display:none">
-                <div class="empty-icon">👻</div>
+                <div class="empty-icon">⚙</div>
                 <h3>No repos found</h3>
-                <p>Connect your GitHub account to see your repositories, or try the demo.</p>
+                <p>Connect your GitHub account or try the demo.</p>
             </div>
 
+            <!-- Loading state -->
             <div class="loading-state" id="loadingState" style="display:none">
                 <div class="spinner"></div>
-                <p>Loading repositories...</p>
+                <p>Booting up the Boiler Room...</p>
+            </div>
+
+            <!-- ACTIVITY TERMINAL -->
+            <div class="terminal-section">
+                <div class="terminal-header">
+                    <div class="terminal-title">Activity Terminal</div>
+                    <div class="terminal-lights">
+                        <div class="terminal-light on"></div>
+                        <div class="terminal-light on" style="animation-delay:0.5s"></div>
+                        <div class="terminal-light on" style="animation-delay:1s"></div>
+                    </div>
+                </div>
+                <div class="terminal-feed" id="terminalFeed">
+                    <div class="terminal-line">
+                        <span class="term-time">--:--</span>
+                        <span class="term-bot">SYSTEM</span>
+                        <span class="term-repo">Boiler Room initialized</span>
+                        <span class="term-status" data-status="ONLINE" style="color:var(--green)">ONLINE</span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -143,20 +175,20 @@
             <div class="modal">
                 <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
                 <div class="modal-header">
-                    <div class="modal-title-row">
-                        <h2 id="modalTitle" class="modal-title"></h2>
-                        <div class="modal-badges" id="modalBadges"></div>
+                    <div>
+                        <div class="modal-title-row">
+                            <h2 id="modalTitle" class="modal-title"></h2>
+                            <div class="modal-badges" id="modalBadges"></div>
+                        </div>
+                        <p class="modal-subtitle" id="modalSubtitle"></p>
                     </div>
-                    <p class="modal-subtitle" id="modalSubtitle"></p>
                 </div>
-
                 <div class="modal-body">
                     <div class="modal-tabs">
                         <button class="tab active" data-tab="metadata">AI Metadata</button>
                         <button class="tab" data-tab="details">Details</button>
                         <button class="tab" data-tab="prompts">Prompts</button>
                     </div>
-
                     <div class="tab-content active" data-tab="metadata" id="tabMetadata">
                         <div class="form-group">
                             <label for="editTags">Tags</label>
@@ -171,56 +203,33 @@
                             <textarea id="editContext" rows="3" placeholder="Key info for AI to know about this repo"></textarea>
                         </div>
                         <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="editPinned">
-                                Pin this repo to top
-                            </label>
+                            <label><input type="checkbox" id="editPinned"> Pin this repo to top</label>
                         </div>
                         <button class="btn btn-primary" onclick="saveMetadata()">Save Changes</button>
                     </div>
-
                     <div class="tab-content" data-tab="details" id="tabDetails">
                         <div class="detail-grid">
-                            <div class="detail-item">
-                                <span class="detail-label">Language</span>
-                                <span class="detail-value" id="detailLang">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Last Push</span>
-                                <span class="detail-value" id="detailPush">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Open PRs</span>
-                                <span class="detail-value" id="detailPRs">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Open Issues</span>
-                                <span class="detail-value" id="detailIssues">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Latest Commit</span>
-                                <span class="detail-value" id="detailCommit">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Visibility</span>
-                                <span class="detail-value" id="detailVisibility">-</span>
-                            </div>
+                            <div class="detail-item"><span class="detail-label">Language</span><span class="detail-value" id="detailLang">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Last Push</span><span class="detail-value" id="detailPush">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Open PRs</span><span class="detail-value" id="detailPRs">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Open Issues</span><span class="detail-value" id="detailIssues">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Branch</span><span class="detail-value" id="detailCommit">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Visibility</span><span class="detail-value" id="detailVisibility">-</span></div>
                         </div>
                     </div>
-
                     <div class="tab-content" data-tab="prompts" id="tabPrompts">
                         <div class="prompt-section">
                             <h4>Context Prompt</h4>
-                            <div class="prompt-box" id="promptContext">
+                            <div class="prompt-box">
                                 <pre id="promptContextText">Select a repo to generate a context prompt.</pre>
-                                <button class="copy-btn" onclick="copyPrompt('context')" title="Copy to clipboard">📋</button>
+                                <button class="copy-btn" onclick="copyPrompt('context')" title="Copy">📋</button>
                             </div>
                         </div>
                         <div class="prompt-section">
                             <h4>Session Resume Prompt</h4>
-                            <div class="prompt-box" id="promptResume">
+                            <div class="prompt-box">
                                 <pre id="promptResumeText">Add session notes to generate a resume prompt.</pre>
-                                <button class="copy-btn" onclick="copyPrompt('resume')" title="Copy to clipboard">📋</button>
+                                <button class="copy-btn" onclick="copyPrompt('resume')" title="Copy">📋</button>
                             </div>
                         </div>
                     </div>
@@ -228,9 +237,7 @@
             </div>
         </div>
 
-        <!-- TOAST -->
         <div class="toast-container" id="toastContainer"></div>
-
         <input type="file" id="importInput" accept=".json" style="display:none">
     </div>
 
