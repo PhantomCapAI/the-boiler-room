@@ -333,10 +333,15 @@
   }
 
   function buildRoomHTML(r, model, plan, color) {
-    return `<div class="room${plan.monitorDone ? ' room-monitor-done' : ''}" data-repo="${escHtml(r.name)}">
+    return `<div class="room${plan.monitorDone ? ' room-monitor-done' : ''}${plan.problem ? ' dmg-' + plan.problem : ''}" data-repo="${escHtml(r.name)}">
       <div class="room-wall"></div>
       <div class="room-pipes left"></div>
       <div class="room-pipes right"></div>
+      <div class="room-pipe-run"><span class="run-drip"></span></div>
+      <div class="room-valve"></div>
+      <div class="room-gauge"><span class="gauge-needle"></span><span class="gauge-hub"></span></div>
+      <div class="room-tank"><span class="tank-steam"></span></div>
+      <div class="room-cabinet"></div>
       <div class="room-shelf"><div class="shelf-box"></div></div>
       <div class="room-junction"></div>
       <div class="room-server"><span class="server-dot"></span></div>
@@ -529,6 +534,8 @@
     ref.roomEl.classList.toggle('room-monitor-done', !!vis.monitorDone);
     ref.roomEl.classList.toggle('room-settled', vis.state === 'complete');
     ref.roomEl.classList.toggle('room-busy', vis.state === 'working' || vis.state === 'reviewing');
+    ref.roomEl.classList.remove('dmg-leak', 'dmg-spark', 'dmg-server', 'dmg-clipboard');
+    if (vis.problem && vis.problem !== 'clipboard') ref.roomEl.classList.add('dmg-' + vis.problem);
   }
 
   function setBotFace(bot, state) {
