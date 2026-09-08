@@ -5,5 +5,8 @@
   "description": "Local-first control room for managing AI coding sessions and GitHub repos",
   "scripts": {
     "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/blob": "2.8.0"
   }
 }

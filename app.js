@@ -18,14 +18,35 @@
     'Model A': '#4a9eff',
     'Model B': '#a78bfa',
     'Model C': '#f0883e',
+    'OpenCode': '#4a9eff',
     'Codex': '#34d058',
     'Claude': '#e3b341',
+    'Gemini': '#a78bfa',
     'MiMo': '#56d4dd',
+    'GPT': '#34d058',
     'Local': '#8b98a8',
   };
 
+  const MODEL_COLOR_RULES = [
+    [/claude|sonnet|opus|haiku/i, '#e3b341'],
+    [/codex|gpt|openai/i, '#34d058'],
+    [/gemini/i, '#a78bfa'],
+    [/mimo/i, '#56d4dd'],
+    [/local/i, '#8b98a8'],
+    [/opencode/i, '#4a9eff'],
+  ];
+
   function getModelColor(model) {
-    return MODEL_COLORS[model] || '#6b7a90';
+    if (!model) return '#6b7a90';
+    if (MODEL_COLORS[model]) return MODEL_COLORS[model];
+    for (const [re, color] of MODEL_COLOR_RULES) {
+      if (re.test(model)) return color;
+    }
+    return '#6b7a90';
+  }
+
+  function compactModel(model) {
+    return String(model || 'OpenCode');
   }
 
   /* =========================================================
@@ -142,6 +163,7 @@
      STATE
      ========================================================= */
   const STORAGE_KEY = 'boilerroom_metadata';
+  let workloadTimer = null;
   let state = {
     repos: [],
     metadata: {},
@@ -152,7 +174,11 @@
     isDemo: false,
     user: null,
     terminalLines: [],
-    botStates: {}
+    botStates: {},
+    sessions: [],
+    workloadStore: '',
+    workloadOnline: true,
+    lastSnapshot: null
   };
 
   function loadMetadata() {
@@ -197,6 +223,51 @@
     renderAIBay();
     renderWorkstations();
     renderTerminalInitial();
+    if (state.user && !state.isDemo) startWorkloadPolling();
+  }
+
+  function startWorkloadPolling() {
+    if (workloadTimer) clearInterval(workloadTimer);
+    fetchWorkload();
+    workloadTimer = setInterval(fetchWorkload, 5000);
+  }
+
+  async function fetchWorkload() {
+    if (!state.user || state.isDemo) return;
+    try {
+      const res = await fetch('/api/workload', { cache: 'no-store' });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      applyWorkload(data);
+    } catch {
+      state.workloadOnline = false;
+      updateLivePill();
+    }
+  }
+
+  function applyWorkload(data) {
+    state.workloadOnline = true;
+    state.workloadStore = data.store || '';
+    const prev = state.sessions;
+    state.sessions = (data.sessions || []);
+    state.lastSnapshot = data;
+    updateLivePill();
+    diffSessions(prev, state.sessions);
+    renderBoiler();
+    renderAIBay();
+    renderWorkstations();
+  }
+
+  function updateLivePill() {
+    const pill = document.getElementById('livePill');
+    if (!pill) return;
+    const live = state.workloadOnline && state.sessions.some(s => s.status !== 'STALE');
+    pill.classList.toggle('disconnected', !state.workloadOnline);
+    pill.classList.toggle('memory', state.workloadStore === 'memory');
+    pill.classList.toggle('idle', !live && state.workloadOnline);
+    pill.title = state.workloadStore === 'memory'
+      ? 'Workload store degraded (in-memory). Attach Vercel KV for persistence.'
+      : `Live workload · ${state.sessions.length} session(s) · store: ${state.workloadStore}`;
   }
 
   function renderHeaderNav() {
@@ -212,6 +283,12 @@
      BOILER — System pressure gauge
      ========================================================= */
   function calcPressure() {
+    if (isLiveMode()) {
+      const c = liveCounters();
+      const pts = c.ACTIVE * 30 + c.REVIEW * 16 + c.BLOCKED * 22 + c.ERROR * 20;
+      if (c.TOTAL === 0) return 0;
+      return Math.min(100, Math.round(pts / c.TOTAL));
+    }
     const repos = state.repos;
     if (!repos.length) return 0;
     let pressure = 0;
@@ -226,8 +303,21 @@
     return Math.min(100, Math.round((pressure / Math.max(repos.length, 1)) * 100));
   }
 
+  function isLiveMode() {
+    return !!state.user && !state.isDemo;
+  }
+
+  function liveCounters() {
+    const c = { ACTIVE: 0, REVIEW: 0, BLOCKED: 0, ERROR: 0, DONE: 0, IDLE: 0, TOTAL: 0 };
+    state.sessions.forEach(s => {
+      if (s.status === 'STALE') return;
+      if (c[s.status] != null) c[s.status]++;
+      c.TOTAL++;
+    });
+    return c;
+  }
+
   function renderBoiler() {
-    const repos = state.repos;
     const pressure = calcPressure();
     const gauge = document.getElementById('boilerGauge');
     const fill = document.getElementById('gaugeFill');
@@ -238,7 +328,20 @@
     fill.className = 'gauge-fill' + (pressure > 70 ? ' high' : pressure > 40 ? ' medium' : '');
     gauge.className = 'boiler-gauge' + (pressure > 70 ? ' pressure-high' : pressure > 40 ? ' pressure-medium' : '');
 
+    if (isLiveMode()) {
+      const c = liveCounters();
+      document.getElementById('statTotal').textContent = c.TOTAL;
+      document.getElementById('statActive').textContent = c.ACTIVE;
+      document.getElementById('statBlocked').textContent = c.BLOCKED + c.ERROR;
+      document.getElementById('statReview').textContent = c.REVIEW;
+      document.getElementById('statDone').textContent = c.DONE + c.IDLE;
+      const pinned = state.repos.filter(r => (state.metadata[getMetaKey(r)] || {}).pinned).length;
+      document.getElementById('statPinned').textContent = pinned;
+      return;
+    }
+
     // Count statuses from metadata
+    const repos = state.repos;
     let active = 0, blocked = 0, review = 0, done = 0, pinned = 0;
     repos.forEach(r => {
       const meta = state.metadata[getMetaKey(r)] || {};
@@ -264,6 +367,23 @@
   function renderAIBay() {
     const bay = document.getElementById('aiBayBots');
     bay.innerHTML = '';
+
+    if (isLiveMode()) {
+      const count = state.sessions.length;
+      if (!count) {
+        bay.appendChild(createBotElement('OpenCode', 'idle', false));
+      } else {
+        state.sessions.forEach(s => {
+          if (s.status === 'STALE') return;
+          const model = compactModel(s.model);
+          const bot = createBotElement(model, faceStateForStatus(s.status), false);
+          bot.title = `${model} — ${s.status} · ${s.repo || s.project || 'no repo'} · ${s.lastActivity || ''}`;
+          bay.appendChild(bot);
+        });
+      }
+      return;
+    }
+
     // Collect unique models in use
     const models = new Set();
     state.repos.forEach(r => {
@@ -380,6 +500,7 @@
   function renderWorkstations() {
     const floor = document.getElementById('workstationFloor');
     const empty = document.getElementById('emptyState');
+    if (isLiveMode()) return renderLiveWorkstations();
     let repos = [...state.repos];
 
     // Search
@@ -644,6 +765,187 @@
   }
 
   /* =========================================================
+     LIVE WORKLOAD — Real AI sessions from the workload API
+     Adapter-agnostic: sessions carry {agent,model,repo,status,...}
+     and can arrive from OpenCode today, Codex/Claude later.
+     ========================================================= */
+  function faceStateForStatus(status) {
+    switch (status) {
+      case 'ACTIVE': return 'working';
+      case 'REVIEW': return 'reviewing';
+      case 'BLOCKED': return 'blocked';
+      case 'ERROR': return 'error';
+      case 'DONE': return 'complete';
+      case 'STALE': return 'idle';
+      default: return 'idle';
+    }
+  }
+
+  function sessionStatusSlug(status) {
+    if (status === 'ERROR') return 'BLOCKED';
+    if (status === 'STALE') return 'DONE';
+    if (status === 'ACTIVE' || status === 'REVIEW' || status === 'BLOCKED' || status === 'DONE' || status === 'IDLE') return status;
+    return '';
+  }
+
+  function sessionRoomVis(session, idx) {
+    const kind = PROBLEM_KINDS[idx % PROBLEM_KINDS.length];
+    const spec = PROBLEM_SPEC[kind];
+    switch (session.status) {
+      case 'ACTIVE':
+        return { state: 'working', pos: spec.pos, problem: kind, light: 'busy', tool: true, tablet: false, monitorDone: false };
+      case 'REVIEW':
+        return { state: 'reviewing', pos: 'review', problem: '', light: 'busy', tool: false, tablet: true, monitorDone: false };
+      case 'BLOCKED':
+        return { state: 'blocked', pos: spec.pos, problem: kind, light: 'busy', tool: false, tablet: false, monitorDone: false };
+      case 'ERROR':
+        return { state: 'error', pos: spec.pos, problem: kind, light: 'err', tool: false, tablet: false, monitorDone: false };
+      case 'DONE':
+        return { state: 'complete', pos: 'desk', problem: '', light: 'ok', tool: false, tablet: false, monitorDone: true };
+      default:
+        return { state: 'idle', pos: 'desk', problem: '', light: 'ok', tool: false, tablet: false, monitorDone: false };
+    }
+  }
+
+  function sessionLabel(session) {
+    if (session.title) return session.title;
+    return session.repo || session.project || `session-${String(session.sessionID).slice(0, 6)}`;
+  }
+
+  function sessionMetaRow(session) {
+    const t = new Date(session.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `<span class="lang"><span class="lang-dot" style="background:${getModelColor(session.model)}"></span>${escHtml(compactModel(session.model))}</span><span>↥ ${t}</span><span>${escHtml(shortStr(session.directory, 28))}</span>`;
+  }
+
+  function renderLiveWorkstations() {
+    const floor = document.getElementById('workstationFloor');
+    const empty = document.getElementById('emptyState');
+    const sessions = state.sessions;
+
+    const live = sessions.filter(s => s.status !== 'STALE');
+
+    if (live.length === 0) {
+      floor.innerHTML = '';
+      empty.style.display = '';
+      const t = empty.querySelector('h3');
+      const p = empty.querySelector('p');
+      if (t) t.textContent = 'No live sessions';
+      if (p) p.textContent = 'Open up an OpenCode session on this machine and give it work. Sessions appear here automatically.';
+      return;
+    }
+    empty.style.display = 'none';
+
+    floor.innerHTML = live.map((session, i) => {
+      const status = session.status || 'IDLE';
+      const slug = sessionStatusSlug(status);
+      const model = compactModel(session.model);
+      const color = getModelColor(session.model);
+      const label = sessionLabel(session);
+      const repos = state.repos.filter(r => r.full_name === session.repo);
+      const pr = repos[0] || { name: session.repo || session.project || 'workspace', private: false, description: session.lastActivity || 'Live AI session', language: '', html_url: '', stargazers_count: 0, pushed_at: new Date(session.lastSeen).toISOString() };
+      const room = roomPlan(slug, i);
+      const ago = timeAgo(new Date(session.lastSeen).toISOString());
+
+      return `<div class="workstation live-ws" data-session="${escHtml(session.sessionID)}" tabindex="0" role="button" aria-label="${escHtml(model)} — ${escHtml(status)}">
+        <div class="workstation-status s-${slug}"></div>
+        ${buildRoomHTML(pr, model, room, color)}
+        <div class="workstation-body">
+          <div class="workstation-header">
+            <span class="workstation-name">${escHtml(label)}</span>
+            <div class="workstation-badges">
+              <span class="badge badge-${slug}">${escHtml(session.agent || 'OpenCode')}</span>
+              <span class="badge badge-${status}">${escHtml(status)}</span>
+            </div>
+          </div>
+          <div class="workstation-desc">${escHtml(session.lastActivity || 'Idle')}</div>
+          <div class="workstation-meta">${sessionMetaRow(session)}</div>
+          <div class="workstation-meta">
+            <span>${pr.name ? escHtml(pr.name) : 'no repo'}</span>
+            <span>❤ ${ago}</span>
+            ${session.error ? `<span class="ws-error">${escHtml(shortStr(session.error, 40))}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    bindLiveRooms();
+  }
+
+  function bindLiveRooms() {
+    document.querySelectorAll('#workstationFloor .workstation').forEach(ws => {
+      const sid = ws.getAttribute('data-session');
+      if (!sid || !ws.querySelector('.room-bot .boiler-bot')) return;
+      const session = state.sessions.find(s => s.sessionID === sid);
+      if (!session) return;
+      const roomEl = ws.querySelector('.room');
+      const ref = {
+        roomEl,
+        bot: roomEl.querySelector('.room-bot .boiler-bot'),
+        roomBot: roomEl.querySelector('.room-bot'),
+        light: roomEl.querySelector('.room-light'),
+        problem: roomEl.querySelector('.room-problem'),
+        tool: roomEl.querySelector('.room-tool'),
+        tablet: roomEl.querySelector('.room-tablet')
+      };
+      const idx = state.sessions.indexOf(session);
+      const vis = sessionRoomVis(session, idx);
+      if (!ref.bot) return;
+      setBotFace(ref.bot, vis.state);
+      ref.roomBot.classList.remove('rpos-desk', 'rpos-left', 'rpos-right', 'rpos-review', 'rpos-center');
+      ref.roomBot.classList.add('rpos-' + vis.pos);
+      ref.light.className = 'room-light st-' + vis.light;
+      if (vis.problem) { if (ref.problem) ref.problem.className = 'room-problem p-' + vis.problem; }
+      else if (ref.problem) ref.problem.style.display = 'none';
+      ref.tool.classList.toggle('on', !!vis.tool);
+      ref.tablet.classList.toggle('on', !!vis.tablet && vis.state === 'reviewing');
+      ref.roomEl.classList.toggle('room-monitor-done', !!vis.monitorDone);
+      ref.roomEl.classList.toggle('room-settled', vis.state === 'complete');
+      ref.roomEl.classList.toggle('room-busy', vis.state === 'working' || vis.state === 'reviewing');
+      ref.roomEl.classList.remove('dmg-leak', 'dmg-spark', 'dmg-server', 'dmg-clipboard');
+      if (vis.problem && vis.problem !== 'clipboard') ref.roomEl.classList.add('dmg-' + vis.problem);
+    });
+  }
+
+  function diffSessions(prev, next) {
+    if (!document.getElementById('terminalFeed')) return;
+    const prevMap = new Map(prev.map(s => [s.sessionID, s]));
+    const nextMap = new Map(next.map(s => [s.sessionID, s]));
+    next.forEach(s => {
+      const p = prevMap.get(s.sessionID);
+      const label = (s.repo && s.repo.split('/')[1]) || s.project || 'session';
+      if (!p) {
+        termLine(s.model, label, 'session online', s.status);
+      } else if (p.status !== s.status) {
+        termLine(s.model, label, s.lastActivity || 'status change', s.status);
+      }
+    });
+    prev.forEach(s => {
+      if (!nextMap.has(s.sessionID)) termLine(s.model, s.repo || s.project || 'session', 'session ended', 'STALE');
+    });
+  }
+
+  function termLine(bot, repo, msg, status) {
+    const time = new Date().toTimeString().slice(0, 5);
+    addTerminalLine(time, compactModel(bot), `${repo} · ${msg}`, status);
+  }
+
+  function shortStr(s, n) {
+    s = String(s || '');
+    return s.length > n ? s.slice(0, n - 3) + '…' : s;
+  }
+
+  document.addEventListener('click', e => {
+    const ws = e.target.closest('.live-ws');
+    if (!ws) return;
+    const sid = ws.getAttribute('data-session');
+    const session = state.sessions.find(s => s.sessionID === sid);
+    if (!session) return;
+    const repo = state.repos.find(r => r.full_name === session.repo);
+    if (repo) { openModal(repo.full_name); return; }
+    showToast(`${compactModel(session.model)} · ${session.status}${session.lastActivity ? ' — ' + session.lastActivity : ''}`);
+  });
+
+  /* =========================================================
      ACTIVITY TERMINAL
      ========================================================= */
   function renderTerminalInitial() {
@@ -653,6 +955,14 @@
     const time = now.toTimeString().slice(0, 5);
 
     addTerminalLine(time, 'SYSTEM', 'Boiler Room online', 'ONLINE');
+
+    if (isLiveMode()) {
+      state.sessions.forEach(s => {
+        const label = (s.repo && s.repo.split('/')[1]) || s.project || 'session';
+        addTerminalLine(time, compactModel(s.model), `${label} · ${s.lastActivity || 'idle'}`, s.status);
+      });
+      return;
+    }
 
     state.repos.forEach(r => {
       const meta = state.metadata[getMetaKey(r)] || {};
@@ -886,8 +1196,8 @@
       document.getElementById('loadingState').style.display = '';
       const repos = await fetchRepos();
       document.getElementById('loadingState').style.display = 'none';
-      if (repos) { state.repos = repos; showDashboard(); }
-      else { showLanding(); }
+      if (repos) state.repos = repos;
+      showDashboard();
     } else { showLanding(); }
   }
 
