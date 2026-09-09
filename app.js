@@ -434,6 +434,15 @@
   const RMOTION = (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const TRAVEL_MS = RMOTION ? 120 : 950;
 
+  function contextualAction(status, meta, session) {
+    const s = (status || '').toUpperCase();
+    if (meta && (meta.aiStatus === 'WAITING_APPROVAL' || meta.aiStatus === 'APPROVAL_REQUIRED')) return { label: 'APPROVE', cls: 'action-approve' };
+    if (s === 'ERROR' || s === 'FAILED') return { label: 'RETRY', cls: 'action-error' };
+    if (s === 'BLOCKED') return { label: 'RESUME', cls: 'action-blocked' };
+    if (meta && meta.contextPct != null && meta.contextPct > 80) return { label: 'COMPACT', cls: 'action-compact' };
+    return null;
+  }
+
   function roomPlan(status, idx) {
     const kind = PROBLEM_KINDS[idx % PROBLEM_KINDS.length];
     switch (status) {
@@ -567,6 +576,7 @@
             <span>${ago}</span>
           </div>
           ${tags.length > 0 ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">${tags.map(t => `<span class="badge badge-status" style="color:var(--text-muted);border-color:var(--border)">${escHtml(t)}</span>`).join('')}</div>` : ''}
+          ${(() => { const act = contextualAction(status, meta); return act ? `<div class="ws-actions"><button class="ws-action ${act.cls}" onclick="event.stopPropagation();handleWsAction('${escHtml(key)}','${status}')" title="${act.label}">${act.label}</button></div>` : ''; })()}
         </div>
       </div>`;
     }).join('');
@@ -864,6 +874,7 @@
             <span>❤ ${ago}</span>
             ${session.error ? `<span class="ws-error">${escHtml(shortStr(session.error, 40))}</span>` : ''}
           </div>
+          ${(() => { const act = contextualAction(status, null, session); return act ? `<div class="ws-actions"><button class="ws-action ${act.cls}" onclick="event.stopPropagation();handleLiveWsAction('${escHtml(session.sessionID)}','${status}')" title="${act.label}">${act.label}</button></div>` : ''; })()}
         </div>
       </div>`;
     }).join('');
@@ -944,6 +955,30 @@
     if (repo) { openModal(repo.full_name); return; }
     showToast(`${compactModel(session.model)} · ${session.status}${session.lastActivity ? ' — ' + session.lastActivity : ''}`);
   });
+
+  window.handleWsAction = function(key, currentStatus) {
+    const meta = state.metadata[key];
+    if (!meta) return;
+    const s = (currentStatus || '').toUpperCase();
+    if (s === 'BLOCKED' || s === 'ERROR') {
+      meta.aiStatus = 'IDLE';
+      renderBoiler();
+      renderAIBay();
+      renderWorkstations();
+      showToast('Session cleared — resuming idle');
+    }
+  };
+
+  window.handleLiveWsAction = function(sessionID, status) {
+    const session = state.sessions.find(s => s.sessionID === sessionID);
+    if (!session) return;
+    const s = (status || session.status || '').toUpperCase();
+    if (s === 'BLOCKED') {
+      showToast(`${compactModel(session.model)} · BLOCKED — host-machine intervention required; resume after clearing`);
+    } else if (s === 'ERROR' || s === 'FAILED') {
+      showToast(`${compactModel(session.model)} · ERROR — retry on host; no server-side action taken`);
+    }
+  };
 
   /* =========================================================
      ACTIVITY TERMINAL

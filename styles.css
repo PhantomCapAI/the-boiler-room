@@ -42,6 +42,7 @@
   --purple: #a78bfa;
   --orange: #f0883e;
   --cyan: #56d4dd;
+  --cyan-dim: #56d4dd22;
 
   /* Boiler Bot palette */
   --bot-idle: #6b7a90;
@@ -798,6 +799,83 @@ body {
   font-size: 0.68rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
+}
+
+/* Contextual action button */
+.ws-actions {
+  display: flex;
+  margin-top: 4px;
+}
+
+.ws-action {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ws-action:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.ws-action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.ws-action.action-blocked {
+  color: var(--yellow);
+  border-color: var(--yellow);
+  background: var(--yellow-dim);
+}
+
+.ws-action.action-blocked:hover {
+  background: var(--yellow);
+  color: var(--bg-primary);
+}
+
+.ws-action.action-error {
+  color: var(--red);
+  border-color: var(--red);
+  background: var(--red-dim);
+}
+
+.ws-action.action-error:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+.ws-action.action-approve {
+  color: var(--green);
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+
+.ws-action.action-approve:hover {
+  background: var(--green);
+  color: var(--bg-primary);
+}
+
+.ws-action.action-compact {
+  color: var(--cyan);
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+}
+
+.ws-action.action-compact:hover {
+  background: var(--cyan);
+  color: var(--bg-primary);
 }
 
 .workstation-meta .lang {
@@ -1966,14 +2044,47 @@ body {
   .landing-title { font-size: 1.4rem; }
   .landing-features { grid-template-columns: 1fr 1fr; padding: 0 16px 40px; }
 
-  /* Boiler room vertical layout */
-  .boiler-section { flex-direction: column; }
-  .boiler-gauge { min-width: unset; border-right: none; border-bottom: 1px solid var(--border); padding: 14px; }
-  .status-strip { flex-wrap: wrap; }
-  .status-cell { min-width: unset; flex: 1 1 25%; border-right: none; border-bottom: 1px solid var(--border-subtle); padding: 10px 8px; }
-  .status-num { font-size: 1.1rem; }
+  /* Boiler room — compact HUD */
+  .boiler-section {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: unset;
+  }
+  .boiler-gauge {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    min-width: unset;
+    padding: 8px 12px;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+  }
+  .gauge-label { margin-bottom: 0; font-size: 0.5rem; }
+  .gauge-value { font-size: 1rem; }
+  .gauge-bar { width: 60px; height: 4px; margin-top: 0; }
+  .status-strip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .status-cell {
+    min-width: unset;
+    flex: 1 1 auto;
+    border-right: none;
+    border-bottom: none;
+    padding: 6px 8px;
+  }
+  .status-cell + .status-cell { border-left: 1px solid var(--border-subtle); }
+  .status-num { font-size: 0.85rem; }
+  .status-lbl { font-size: 0.45rem; letter-spacing: 0.5px; }
 
-  .ai-bay { padding: 8px 14px; }
+  /* AI Bay — hero / animated show */
+  .ai-bay {
+    padding: 16px 14px;
+    min-height: 100px;
+    gap: 12px;
+  }
+  .ai-bay-label { font-size: 0.5rem; }
+  .ai-bay-bots { gap: 14px; }
 
   .toolbar { padding: 8px 14px; }
   .toolbar-right { width: 100%; justify-content: space-between; }
@@ -1998,7 +2109,11 @@ body {
   .landing-features { grid-template-columns: 1fr; }
   .landing-actions { flex-direction: column; width: 100%; }
   .landing-actions .btn { width: 100%; text-align: center; }
-  .status-cell { flex: 1 1 50%; }
+  .boiler-gauge { padding: 6px 10px; }
+  .gauge-value { font-size: 0.9rem; }
+  .status-cell { padding: 5px 6px; }
+  .status-num { font-size: 0.75rem; }
+  .ai-bay { padding: 14px 12px; min-height: 90px; }
 }
 
 /* =========================================================
