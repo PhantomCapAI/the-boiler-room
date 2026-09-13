@@ -1,79 +1,116 @@
 # The Boiler Room
 
-> One control room for every repo and every AI coding session.
+> A live control room for AI coding sessions, repo health, and operator decisions.
+
+[![Live App](https://img.shields.io/badge/LIVE-THE%20BOILER%20ROOM-3fb950?style=for-the-badge)](https://the-boiler-room-theta.vercel.app/)
 
 ![HTML](https://img.shields.io/badge/HTML-CSS-JS-ff6600?style=flat-square)
-![Static Site](https://img.shields.io/badge/Static-Site-3fb950?style=flat-square)
+![Vercel](https://img.shields.io/badge/Vercel-Functions-ffffff?style=flat-square&logo=vercel&logoColor=000000)
 ![Local First](https://img.shields.io/badge/Local--First-58a6ff?style=flat-square)
-![Zero Backend](https://img.shields.io/badge/Zero-Backend-d29922?style=flat-square)
+![AI Sessions](https://img.shields.io/badge/AI-Session%20Control-a78bfa?style=flat-square)
 
-**Live App:** [the-boiler-room.vercel.app](https://the-boiler-room.vercel.app)
-**GitHub Pages Demo:** [phantomcapai.github.io/the-boiler-room](https://phantomcapai.github.io/the-boiler-room/)
+**Live app:** https://the-boiler-room-theta.vercel.app/  
+**Public demo:** https://phantomcapai.github.io/the-boiler-room/
 
-## What It Does
+## What is The Boiler Room?
 
-The Boiler Room is a local-first control room for developers juggling multiple repositories and AI coding agents. It shows repo status, assigned models, context usage, objectives, next actions, and CTO PASS/FIX decisions in one place — no server, no database, no account required for the demo.
+The Boiler Room is a compact operator dashboard for developers running multiple repositories and AI coding sessions at the same time.
 
-## Features
+Instead of bouncing between terminals, repos, model windows, and status notes, Boiler Room brings the important signals into one place: what is running, what is blocked, which model is working, how much context is being used, what needs review, and what the next action should be.
 
-- **Repo cards** with status, model, context usage, objective, and commit info
-- **Overview stats** — total, annotated, pinned, active 24h with progress bar
-- **Context usage** with color-coded progress bars (green / warning / critical)
-- **Detail modal** — click any card to view and edit all fields
-- **Copy Next Prompt** — one-click prompt generation for AI sessions
-- **Filter & search** — by status, model, CTO decision, or free text
-- **Import / Export** — save and restore dashboard state as JSON
-- **Reset to defaults** — restore seed data from `repos.json`
-- **Keyboard accessible** — full Tab navigation, focus trap in modal, Escape to close
-- **Dark control-room theme** — compact, scannable, responsive
+The interface is intentionally styled like a living industrial control room rather than a generic SaaS dashboard. The **System Pressure HUD**, animated **AI Bay**, and workstation cards make agent state easy to scan at a glance.
 
-## Public Demo
+## Highlights
 
-The public demo at [phantomcapai.github.io/the-boiler-room](https://phantomcapai.github.io/the-boiler-room/) uses **fictional project data only**. It does not represent real projects, real model assignments, real objectives, or real operational state.
+- **System Pressure HUD** — compact view of active, blocked, review, done, and pinned work
+- **Animated AI Bay** — visual worker states for active, reviewing, blocked, idle, and completed sessions
+- **Live workload view** — ingest and display active AI coding-session telemetry
+- **Repo workstations** — model, objective, task, context usage, commit data, and CTO decision in one card
+- **Context pressure** — color-coded context meters with critical-state handling
+- **Contextual actions** — UI action slots for states such as retry, resume, compact, and approval workflows
+- **GitHub sign-in** — authenticated access to real repository data through server-side OAuth
+- **Persistent workload storage** — Vercel Blob support with KV/Upstash fallback
+- **Local-first metadata** — personal annotations remain in the browser unless explicitly exported
+- **Search + filters** — quickly isolate repos and sessions by status, model, or text
+- **Import / export** — save or restore local dashboard state as JSON
+- **Responsive UI** — desktop control-room layout with a compact mobile HUD
 
-Allowed demo repos: `example-api`, `example-frontend`, `example-agent`, `example-docs`.
+## How it fits together
 
-## GitHub Sign-In Architecture
+```text
+AI coding sessions / OpenCode
+            │
+            ▼
+   workload ingest API
+            │
+            ▼
+┌─────────────────────────────┐
+│       THE BOILER ROOM       │
+│                             │
+│  System Pressure HUD        │
+│  Animated AI Bay            │
+│  Repo / Session Cards       │
+│  Context + Status           │
+│  Operator Actions           │
+└─────────────────────────────┘
+            │
+      ┌─────┴─────┐
+      ▼           ▼
+ GitHub OAuth   Vercel Blob
+ / repo data    / KV fallback
+```
 
-If you deploy with Vercel and configure GitHub OAuth, The Boiler Room supports authenticated access to your real repositories:
+## Public vs authenticated mode
 
-- OAuth flow uses `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (server-side only)
-- Sessions are stored in HttpOnly, Secure, SameSite=Lax cookies
-- No GitHub tokens are exposed to client-side JavaScript
-- No tokens are stored in localStorage
-- Repositories are fetched server-side and returned to the authenticated user only
+The GitHub Pages build is a **demo-only surface** with fictional project data.
 
-GitHub Pages is demo-only and does not support authentication.
+The Vercel deployment can use GitHub OAuth to show authenticated repository data and can receive live workload telemetry from the local OpenCode integration.
 
-## Privacy Model
+Personal annotations such as assigned model, context %, objective, current task, next action, CTO decision, notes, and next prompt remain local to the browser unless explicitly exported.
 
-| Layer | Storage | Scope |
-|-------|---------|-------|
-| **Public demo** | Embedded fictional data | Anyone |
-| **Personal metadata** | Browser localStorage | You only |
-| **GitHub session** | Server-side HttpOnly cookie | Per-deployment |
+## Architecture
 
-Personal fields (assigned model, context %, objective, current task, next action, CTO decision, notes, next prompt) remain in your browser unless you explicitly export them.
+Boiler Room keeps the frontend deliberately lightweight:
 
-No personal annotations are uploaded to GitHub. No cloud synchronization. No analytics.
+```text
+index.html              UI structure
+styles.css              dark industrial / pixel control-room theme
+app.js                  rendering, state, workstation + AI Bay behavior
+repos.json               demo seed data
+api/auth/                GitHub OAuth + session endpoints
+api/github/              authenticated GitHub proxy
+api/workload/            live AI-session workload ingest + reads
+vercel.json              Vercel routing / headers
+.github/                 GitHub Pages workflow + repo templates
+```
 
-## Import / Export
+The frontend is plain HTML, CSS, and JavaScript. Server-side functionality is handled by small Vercel functions rather than a frontend framework.
 
-- **Export**: Downloads current localStorage state as a JSON file. Generated entirely in-browser.
-- **Import**: Accepts a JSON file. Validates structure. Rejects malformed data. Never executes imported content.
-- **Reset**: Restores demo defaults from `repos.json`.
+## Local development
 
-Do not commit exported JSON files if they contain private notes.
+### Vercel dev mode
 
-## Local Development
+```bash
+npm install
+npm run dev
+```
 
-### Option A: Direct file open
+Copy `.env.example` to your local environment and configure only the services you intend to use.
 
-Open `index.html` in your browser. The app includes embedded seed data, so it works without a server.
+Relevant variables include:
 
-> If `repos.json` fails to load (CORS on `file://`), the app automatically uses the embedded defaults.
+```text
+GITHUB_CLIENT_ID
+GITHUB_CLIENT_SECRET
+SESSION_SECRET
+WORKLOAD_INGEST_SECRET
+```
 
-### Option B: Local HTTP server (recommended)
+Persistent workload storage can use Vercel Blob. KV / Upstash can be configured as a fallback.
+
+### Static demo mode
+
+The demo can also run without the authenticated APIs:
 
 ```bash
 python -m http.server 8000
@@ -81,108 +118,59 @@ python -m http.server 8000
 
 Then open `http://localhost:8000`.
 
-## Vercel Deployment
+## GitHub OAuth
 
-1. Push the repo to GitHub.
-2. Go to [vercel.com/new](https://vercel.com/new) and import the GitHub repository.
-3. Framework preset: **Other** (static).
-4. Build command: leave empty.
-5. Output directory: **.** (root).
-6. Click **Deploy**.
+For authenticated repository access:
 
-No `vercel.json` is required for basic deployment. The included `vercel.json` adds clean URLs and cache headers for `repos.json`.
+1. Create a GitHub OAuth App.
+2. Configure `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and a strong `SESSION_SECRET` in Vercel.
+3. Use the deployed callback URL for the live Boiler Room deployment.
+4. Never commit real credentials.
 
-### Vercel Environment Variables (for GitHub auth)
+OAuth token exchange happens server-side. Session cookies are HttpOnly, Secure, and SameSite=Lax.
 
-Set these in the Vercel dashboard under **Settings > Environment Variables**:
+## Workload telemetry
 
-- `GITHUB_CLIENT_ID` — from your GitHub OAuth App
-- `GITHUB_CLIENT_SECRET` — from your GitHub OAuth App
-- `SESSION_SECRET` — a random 32+ character string
+Live AI-session state is accepted through the workload ingest API using a shared ingest secret. The server sanitizes workload records before they are surfaced to the UI.
 
-**Never commit actual values.** Use the Vercel UI to set them.
+Storage behavior:
 
-### OAuth Callback URL
+- **Vercel Blob** when attached to the project
+- **KV / Upstash** as a fallback when configured
+- **Ephemeral memory** if neither persistent store is available
 
-After deploying, update your GitHub OAuth App callback URL to:
+The local integration and cloud UI are intentionally separated so local tooling can remain the execution environment while Boiler Room acts as the control surface.
 
-```
-https://the-boiler-room.vercel.app/api/auth/callback
-```
+## Security model
 
-## GitHub Pages Deployment
+- API keys and credentials are not committed to the repository
+- `.env` files are gitignored
+- GitHub OAuth token exchange occurs server-side
+- Session cookies are HttpOnly and Secure
+- Workload ingestion requires a shared secret
+- Imported JSON is treated as data, not executable content
+- Live operator actions should be scoped to the exact session/request they target
+- Public demo data is fictional
 
-1. Go to **Settings > Pages** in your GitHub repo.
-2. Under **Source**, select **GitHub Actions**.
-3. The included workflow (`.github/workflows/deploy-pages.yml`) runs on every push to `main`.
-4. Your site will be available at `https://phantomcapai.github.io/the-boiler-room/`.
+> The current signed session-cookie design protects integrity but does not provide encrypted server-side session storage. Moving sessions fully server-side remains a security improvement on the roadmap.
 
-All asset paths are relative, so the app works correctly under a subpath.
+## Current direction
 
-## Architecture
+Boiler Room is evolving from a monitoring dashboard into a lightweight **AI operator console**.
 
-Pure static site — no build step, no framework, no dependencies.
+Near-term work includes:
 
-```
-index.html      — dashboard structure
-styles.css      — dark control-room theme
-app.js          — data layer, rendering, editing, persistence
-repos.json      — seed data (source of truth)
-vercel.json     — Vercel static config
-api/            — Vercel serverless functions (auth + GitHub proxy)
-.github/        — Pages deployment workflow, issue/PR templates
-```
-
-### Data Model
-
-Each repo entry:
-
-| Field | Description |
-|-------|-------------|
-| `id` | Unique identifier |
-| `name` | Display name |
-| `url` | GitHub URL |
-| `model` | Assigned AI model |
-| `status` | ACTIVE, BLOCKED, REVIEW, or DONE |
-| `context` | Context usage percentage (0-100) |
-| `objective` | Current high-level objective |
-| `currentTask` | What's being worked on now |
-| `nextAction` | What to do next |
-| `lastCommitSha` | Latest commit hash |
-| `lastCommitMessage` | Latest commit message |
-| `ctoDecision` | PENDING, PASS, FIX, or DONE |
-| `notes` | Freeform notes |
-| `nextPrompt` | Pre-built prompt for Copy Next Prompt |
-
-## Security Notes
-
-- No API keys, tokens, or credentials are committed to this repository.
-- `.env` files are gitignored.
-- Session cookies use HttpOnly, Secure, and SameSite=Lax flags.
-- GitHub OAuth state parameter is signed and verified to prevent CSRF.
-- The `api/` directory contains Vercel serverless functions that handle OAuth token exchange server-side.
-- The GitHub access token is stored in a signed session cookie. The cookie is HttpOnly (not readable by JavaScript) and Secure (transmitted only over HTTPS). However, the session payload is signed but not encrypted — the token is base64url-encoded in the cookie value. This provides integrity but not confidentiality at the cookie layer. For maximum security, consider storing sessions server-side in a database.
-
-## Limitations
-
-- Data lives in localStorage (single browser, single device).
-- No automatic context monitoring.
-- No sync across devices.
-- No real-time updates.
-- Session cookie stores the GitHub access token (signed but not encrypted).
-
-## Roadmap
-
-- Server-side session storage (database-backed)
-- Automatic context monitoring
-- Webhook updates
-- Multi-device sync
-- Codex/Claude session tracking
+- tighter OpenCode session integration
+- real one-click operator approval flows
+- richer state-driven robot animations and AI Bay movement
+- automatic context / compaction signals
+- stronger multi-device control
+- server-side session storage
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-No license file has been added yet. Until one is chosen, all rights are reserved by the author.
+No license file has been added yet. Until a license is explicitly chosen, all rights are reserved by the author.
